@@ -95,7 +95,7 @@ class SoftPlus(Layer):
         return F.softplus(self.x)
 
     def backward(self, dout):
-        return np.multiply(np.exp(self.x)/ np.add(1, np.exp(self.x)), dout)
+        return np.multiply(np.exp(self.x) / np.add(1, np.exp(self.x)), dout)
 
 
 class Gauss(LastLayer):
@@ -121,7 +121,7 @@ class Gauss(LastLayer):
 
     def backward(self):
         batch_size = self.t.shape[0]
-        return np.multiply(self.y - self.t, 1/batch_size)
+        return np.multiply(self.y - self.t, 1 / batch_size)
 
 
 class Poisson(LastLayer):
@@ -147,13 +147,14 @@ class Poisson(LastLayer):
 
     def backward(self):
         batch_size = self.t.shape[0]
-        return np.multiply(self.y - self.t, dout/batch_size)
+        return np.multiply(self.y - self.t, 1 / batch_size)
 
 
 class Softmax(LastLayer):
     """
     softmax with Cross Entropy
     """
+
     def __init__(self):
         self.y = None
         self.t = None
@@ -167,13 +168,13 @@ class Softmax(LastLayer):
         self.y = self.predict(x)
         return F.cross_entropy(self.y, self.t)
 
-    def backward(self, dout=1):
+    def backward(self):
         batch_size = self.t.shape[0]
         if self.t.size == self.y.size:
-            dx = np.multiply(self.y - self.t, dout / batch_size)
+            dx = np.multiply(self.y - self.t, 1 / batch_size)
         else:
             dx = self.y.copy()
             dx[np.arange(batch_size), self.t] -= 1
-            dx = np.multiply(dx, dout / batch_size)
+            dx = np.multiply(dx, 1 / batch_size)
 
         return dx
