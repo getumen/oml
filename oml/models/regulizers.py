@@ -22,6 +22,17 @@ class FineteLipschitz:
     pass
 
 
+class Nothing(Reg):
+    def __init__(self):
+        Reg.__init__(self)
+
+    def apply(self, w):
+        return 0
+
+    def proximal(self, w, step_size):
+        return w
+
+
 class L2Sq(Reg, FineteLipschitz):
     """
     L2 squared norm does not have finite Lipschitz constant in general.
