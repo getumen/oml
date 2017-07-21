@@ -27,12 +27,6 @@ class BaseGLM(OracleRef):
     def loss(self, x, t):
         raise NotImplementedError()
 
-    def fit(self, iterator, optimizer):
-        raise NotImplementedError()
-
-    def save(self):
-        raise NotImplementedError()
-
 
 class LinearRegression(BaseGLM):
 
@@ -58,9 +52,3 @@ class LinearRegression(BaseGLM):
         for layer in self.layers:
             x = layer.forward(x)
         return self.last_layer.forward(x, t)
-
-    def fit(self, iterator, optimizer):
-        raise NotImplementedError()
-
-    def save(self):
-        raise NotImplementedError()
