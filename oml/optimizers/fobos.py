@@ -9,14 +9,15 @@ import numpy as np
 from oml import optimizer
 from oml.models.glm import BaseGLM
 from oml.functions import StrongConvexity
+from oml.datasouces.iterator import BaseIterator
 
 
 class Fobos(optimizer.Optimizer):
     def __init__(
             self,
             model: BaseGLM,
-            train_data,
-            test_data,
+            train_data: BaseIterator,
+            test_data: BaseIterator,
             max_iter=None,
             step_size=0.01,
             t=0,

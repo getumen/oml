@@ -48,5 +48,11 @@ def cross_entropy(y, t):
 
 class StrongConvexity:
     def __init__(self, mu=0):
+        # strong convexity parameter of the function
         self.mu = mu
 
+
+class Differentiable:
+    def __init__(self, gamma=None):
+        # Lipschitz constant of the gradient of the function
+        self.gamma = gamma
