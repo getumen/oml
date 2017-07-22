@@ -11,6 +11,6 @@ setup(
     author='@getumen',
     author_email='yoshihiro[AT]mdl.cs.tsukuba.ac.jp',
     url='https://github.com/getumen/oml',
-    packages=find_packages(exclude=('tests', )),
+    packages=find_packages(exclude=('tests', 'examples')),
     install_requires=REQUIREMENTS,
 )

@@ -5,12 +5,15 @@ from __future__ import generators
 from __future__ import division
 
 
-class FirstOrderOracle:
-    def __init__(self):
-        self.param = {}
-        self.grad = {}
+class Optimizer:
+    def __init__(
+            self,
+            model,
+            t=0,
+    ):
+        self.t = t
 
+        self.model = model
 
-class OracleRef:
-    def get_oracle(self) -> list:
+    def optimize(self, train_data, test_data):
         raise NotImplementedError()

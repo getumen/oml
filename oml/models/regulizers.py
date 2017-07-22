@@ -17,6 +17,9 @@ class Reg:
     def proximal(self, w, step_size):
         raise NotImplementedError()
 
+    def sub_differential(self, w):
+        return w - self.proximal(w, 1)
+
 
 class FineteLipschitz:
     pass

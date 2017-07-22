@@ -8,7 +8,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from oml import functions as F
-from oml.model import FirstOrderOracle
+from oml.models.regulizers import Reg, Nothing
 
 
 class Layer:
@@ -30,29 +30,53 @@ class LastLayer:
         raise NotImplementedError()
 
 
-class Affine(FirstOrderOracle, Layer):
-    def __init__(self, input_size, output_size, sparse=False):
-        FirstOrderOracle.__init__(self)
+class FirstOrderOracle:
+    def __init__(self, grad: np.ndarray):
+        self.grad = grad
+
+    def clear_grad(self):
+        self.grad = np.zeros_like(self.grad)
+
+
+class ProximalOracle:
+    def __init__(self, reg):
+        self.reg = reg
+
+
+class Param(FirstOrderOracle, ProximalOracle):
+    def __init__(self, input_size, output_size, reg=Nothing(), sparse=False):
+        ProximalOracle.__init__(self, reg)
+        FirstOrderOracle.__init__(self, np.zeros((input_size, output_size)))
         if sparse:
-            self.param['w'] = csr_matrix((input_size, output_size))
-            self.param['b'] = csr_matrix(output_size)
+            self.param = csr_matrix((input_size, output_size))
         else:
-            self.param['w'] = np.zeros((input_size, output_size))
-            self.param['b'] = np.zeros(output_size)
+            self.param = np.zeros((input_size, output_size))
+
+
+class State:
+    def __init__(self, param: dict):
+        self.param = param
+
+
+class Affine(Layer, State):
+    def __init__(self, input_size, output_size, reg=Nothing(), sparse=False):
+        State.__init__(self, {
+            'w': Param(input_size, output_size, sparse=sparse, reg=reg),
+            'b': Param(1, output_size, sparse=sparse)
+        })
+
         self.x = None
         self.original_x_shape = None
-        self.grad['w'] = None
-        self.grad['b'] = None
 
     def forward(self, x):
         self.original_x_shape = x.shape
         self.x = x.reshape(x.shape[0], -1)
-        return np.dot(self.x, self.param['w']) + self.param['b']
+        return np.dot(self.x, self.param['w'].param) + self.param['b'].param
 
     def backward(self, dout):
-        dx = np.dot(dout, self.param['w'].T)
-        self.grad['w'] = np.dot(self.x.T, dout)
-        self.grad['b'] = np.sum(dout, axis=0)
+        dx = np.dot(dout, self.param['w'].param.T)
+        self.param['w'].grad += np.dot(self.x.T, dout)
+        self.param['b'].grad += np.sum(dout, axis=0)
         return dx.reshape(*self.original_x_shape)
 
 
@@ -120,7 +144,7 @@ class Gauss(LastLayer):
         return self.x
 
     def backward(self):
-        batch_size = self.t.shape[0]
+        batch_size = self.x.shape[0]
         return np.multiply(self.y - self.t, 1 / batch_size)
 
 
@@ -169,12 +193,13 @@ class Softmax(LastLayer):
         return F.cross_entropy(self.y, self.t)
 
     def backward(self):
-        batch_size = self.t.shape[0]
+        batch_size = self.x.shape[0]
         if self.t.size == self.y.size:
             dx = np.multiply(self.y - self.t, 1 / batch_size)
         else:
             dx = self.y.copy()
-            dx[np.arange(batch_size), self.t] -= 1
+            dx[np.arange(batch_size), self.t.astype(int)] -= 1
             dx = np.multiply(dx, 1 / batch_size)
 
         return dx
+
