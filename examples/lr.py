@@ -32,22 +32,22 @@ test_index = list(set(range(data.shape[0])).difference(set(train_index)))
 train_data = data[train_index, :]
 test_data = data[test_index, :]
 
-train_iter = NumpyIterator(train_data, batch_size=3)
+train_iter = NumpyIterator(train_data, batch_size=10)
 test_iter = NumpyIterator(test_data)
 
 
 model1 = LinearRegression(feature, target, reg=L1(param=0.01))
 optimizer = Fobos(model1)
-optimizer.optimize(train_iter, test_iter, show_evaluation=True)
+optimizer.optimize(train_iter, test_iter, epoch=100)
 
 model2 = LinearRegression(feature, target, reg=L1(param=0.01))
 optimizer = AdaGrad(model2)
-optimizer.optimize(train_iter, test_iter, show_evaluation=True)
+optimizer.optimize(train_iter, test_iter, epoch=100)
 
 model3 = LinearRegression(feature, target, reg=L1(param=0.01))
 optimizer = PrimalDualAdaGrad(model3)
-optimizer.optimize(train_iter, test_iter, show_evaluation=True)
+optimizer.optimize(train_iter, test_iter, epoch=100)
 
 model4 = LinearRegression(feature, target, reg=L1(param=0.01))
 optimizer =Rda(model4)
-optimizer.optimize(train_iter, test_iter, show_evaluation=True)
+optimizer.optimize(train_iter, test_iter, epoch=100)
