@@ -5,7 +5,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from oml.models.components import Affine, Gauss, Softmax, State
-from oml.models.regulizers import L1, L2Sq
+from oml.models.regulizers import Nothing
 import numpy as np
 
 """
@@ -24,9 +24,13 @@ class BaseGLM:
         return self.last_layer.predict(x)
 
     def loss(self, x, t):
+        reg = 0
         for layer in self.layers:
             x = layer.forward(x)
-        return self.last_layer.forward(x, t)
+            if isinstance(layer, State):
+                for key in layer.param.keys():
+                    reg += layer.param[key].reg.apply(layer.param[key].param)
+        return self.last_layer.forward(x, t) + reg
 
     def clear_grad(self):
         for layer in self.layers:
@@ -48,7 +52,7 @@ class LinearRegression(BaseGLM):
             self,
             input_size,
             output_size,
-            reg=L2Sq(param=0.01)
+            reg=Nothing()
     ):
         BaseGLM.__init__(
             self,
@@ -58,22 +62,14 @@ class LinearRegression(BaseGLM):
             Gauss(),
         )
 
-    def predict(self, x):
-        for layer in self.layers:
-            x = layer.forward(x)
-        return self.last_layer.predict(x)
-
-    def loss(self, x, t):
-        for layer in self.layers:
-            x = layer.forward(x)
-        return self.last_layer.forward(x, t)
-
     def evaluate_model(self, test_iter):
         error = 0
         sample_num = 0
-        for x, t in test_iter:
+        for page in test_iter.pages:
+            data = np.matrix(list(page))
+            x, t = data[:, :-1], data[:, -1]
             error += np.linalg.norm(t - self.predict(x)) ** 2
-            sample_num += 1
+            sample_num += x.shape[0]
 
         print('=== RMSE: {}'.format(np.sqrt(error / sample_num)))
 
@@ -83,7 +79,7 @@ class SoftmaxRegression(BaseGLM):
             self,
             input_size,
             output_size,
-            reg=L1(param=0.01)
+            reg=Nothing()
     ):
         BaseGLM.__init__(
             self,
@@ -96,12 +92,12 @@ class SoftmaxRegression(BaseGLM):
     def evaluate_model(self, test_iter):
         accuracy = 0
         sample_num = 0
-        for x, t in test_iter:
+        for page in test_iter.pages:
+            data = np.matrix(list(page))
+            x, t = data[:, :-1], data[:, -1]
             y = self.predict(x)
             y = np.argmax(y, axis=1)
-            if t.ndim >= 2:
-                t = np.argmax(t, axis=1)
-            accuracy += np.sum(y == t) / float(x.shape[0])
-            sample_num += 1
+            accuracy += np.sum(y == t)
+            sample_num += x.shape[0]
 
         print('=== Accuracy: {}'.format(accuracy/sample_num))

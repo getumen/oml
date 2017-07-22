@@ -170,7 +170,7 @@ class Poisson(LastLayer):
         return np.sum(self.y - np.multiply(t, self.x))
 
     def backward(self):
-        batch_size = self.t.shape[0]
+        batch_size = self.x.shape[0]
         return np.multiply(self.y - self.t, 1 / batch_size)
 
 
@@ -182,6 +182,7 @@ class Softmax(LastLayer):
     def __init__(self):
         self.y = None
         self.t = None
+        self.x = None
 
     def predict(self, x):
         self.x = x
@@ -193,13 +194,11 @@ class Softmax(LastLayer):
         return F.cross_entropy(self.y, self.t)
 
     def backward(self):
-        batch_size = self.x.shape[0]
+        batch_size = self.t.shape[0]
         if self.t.size == self.y.size:
-            dx = np.multiply(self.y - self.t, 1 / batch_size)
+            dx = (self.y - self.t) / batch_size
         else:
             dx = self.y.copy()
             dx[np.arange(batch_size), self.t.astype(int)] -= 1
-            dx = np.multiply(dx, 1 / batch_size)
-
+            dx = dx / batch_size
         return dx
-
