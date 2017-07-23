@@ -12,7 +12,7 @@ from oml.models.regulizers import Reg, Nothing
 
 
 class Layer:
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         raise NotImplementedError()
 
     def backward(self, dout):
@@ -20,10 +20,10 @@ class Layer:
 
 
 class LastLayer:
-    def forward(self, x, t):
+    def forward(self, x, t, *args, **kwargs):
         raise NotImplementedError()
 
-    def predict(self, x):
+    def predict(self, x, *args, **kwargs):
         raise NotImplementedError()
 
     def backward(self):
@@ -44,13 +44,18 @@ class ProximalOracle:
 
 
 class Param(FirstOrderOracle, ProximalOracle):
-    def __init__(self, shape, reg=Nothing(), sparse=False):
+    def __init__(self, shape=None, reg=Nothing(), sparse=False, param=None):
         ProximalOracle.__init__(self, reg)
         FirstOrderOracle.__init__(self, np.zeros(shape))
-        if sparse:
-            self.param = csr_matrix(shape)
+        if shape is not None:
+            if sparse:
+                self.param = csr_matrix(np.zeros(shape))
+            else:
+                self.param = np.random.normal(size=shape)*1e-7
+        elif param is not None:
+            self.param = param
         else:
-            self.param = np.zeros(shape)
+            raise ValueError("Fail to initialize")
 
 
 class State:
@@ -68,7 +73,7 @@ class Affine(Layer, State):
         self.x = None
         self.original_x_shape = None
 
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         self.original_x_shape = x.shape
         self.x = x.reshape(x.shape[0], -1)
         return np.dot(self.x, self.param['w'].param) + self.param['b'].param
@@ -84,7 +89,7 @@ class Sigmoid(Layer):
     def __init__(self):
         self.x = None
 
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         self.x = x
         return F.sigmoid(self.x)
 
@@ -96,7 +101,7 @@ class Relu(Layer):
     def __init__(self):
         self.mask = None
 
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         self.mask = (x <= 0)
         out = x.copy()
         out[self.mask] = 0
@@ -114,7 +119,7 @@ class SoftPlus(Layer):
     def __init__(self):
         self.x = None
 
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         self.x = x
         return F.softplus(self.x)
 
@@ -134,12 +139,12 @@ class Gauss(LastLayer):
         self.y = None
         self.t = None
 
-    def forward(self, x, t):
-        self.y = self.predict(x)
+    def forward(self, x, t, *args, **kwargs):
+        self.y = self.predict(x, *args, **kwargs)
         self.t = t.reshape(self.y.shape)
         return F.mean_squared(self.y, self.t)
 
-    def predict(self, x):
+    def predict(self, x, *args, **kwargs):
         self.x = x
         return self.x
 
@@ -160,12 +165,12 @@ class Poisson(LastLayer):
         self.y = None
         self.t = None
 
-    def predict(self, x):
+    def predict(self, x, *args, **kwargs):
         self.x = x
         return np.exp(self.x)
 
-    def forward(self, x, t):
-        self.y = self.predict(x)
+    def forward(self, x, t, *args, **kwargs):
+        self.y = self.predict(x, *args, **kwargs)
         self.t = t.reshape(self.y.shape)
         return np.sum(self.y - np.multiply(t, self.x))
 
@@ -184,13 +189,13 @@ class Softmax(LastLayer):
         self.t = None
         self.x = None
 
-    def predict(self, x):
+    def predict(self, x, *args, **kwargs):
         self.x = x
         return F.softmax(x)
 
-    def forward(self, x, t):
+    def forward(self, x, t, *args, **kwargs):
         self.t = t
-        self.y = self.predict(x)
+        self.y = self.predict(x, *args, **kwargs)
         return F.cross_entropy(self.y, self.t)
 
     def backward(self):
@@ -239,7 +244,7 @@ def col2im(col, input_shape, filter_h, filter_w, stride=1, pad=0):
 
 
 class Convolution(Layer, State):
-    def __init__(self, weight_shape, bias_shape, stride=1, pad=0, sparse=True, reg=Nothing()):
+    def __init__(self, weight_shape, bias_shape, stride=1, pad=0, sparse=False, reg=Nothing()):
         Layer.__init__(self)
         State.__init__(self, {
             'w': Param(weight_shape, sparse=sparse, reg=reg),
@@ -249,27 +254,24 @@ class Convolution(Layer, State):
         self.pad = pad
 
         self.x = None
-        self.col = None
-        self.col_W = None
+        self.col_x = None
+        self.col_w = None
 
-        self.dW = None
-        self.db = None
-
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         FN, C, FH, FW = self.param['w'].param.shape
         N, C, H, W = x.shape
         out_h = 1 + int((H + 2 * self.pad - FH) / self.stride)
         out_w = 1 + int((W + 2 * self.pad - FW) / self.stride)
 
         col = im2col(x, FH, FW, self.stride, self.pad)
-        col_W = self.param['w'].param.reshape(FN, -1).T
+        col_w = self.param['w'].param.reshape(FN, -1).T
 
-        out = np.dot(col, col_W) + self.param['b'].param
+        out = np.dot(col, col_w) + self.param['b'].param
         out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
 
         self.x = x
-        self.col = col
-        self.col_W = col_W
+        self.col_x = col
+        self.col_w = col_w
 
         return out
 
@@ -278,26 +280,27 @@ class Convolution(Layer, State):
         dout = dout.transpose(0, 2, 3, 1).reshape(-1, FN)
 
         self.param['b'].grad += np.sum(dout, axis=0)
-        self.param['w'].grad += np.dot(self.col.T, dout)
-        self.param['w'].grad = self.param['w'].grad.transpose(1, 0).reshape(FN, C, FH, FW)
+        grad = np.dot(self.col_x.T, dout)
+        self.param['w'].grad += grad.transpose((1, 0)).reshape(FN, C, FH, FW)
 
-        dcol = np.dot(dout, self.col_W.T)
+        dcol = np.dot(dout, self.col_w.T)
         dx = col2im(dcol, self.x.shape, FH, FW, self.stride, self.pad)
 
         return dx
 
 
-class Pooling:
-    def __init__(self, pool_h, pool_w, stride=1, pad=0):
-        self.pool_h = pool_h
-        self.pool_w = pool_w
+class Pooling(Layer):
+    def __init__(self, pool_size, stride=1, pad=0):
+        Layer.__init__(self)
+        self.pool_h = pool_size[0]
+        self.pool_w = pool_size[1]
         self.stride = stride
         self.pad = pad
 
         self.x = None
         self.arg_max = None
 
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         N, C, H, W = x.shape
         out_h = int(1 + (H - self.pool_h) / self.stride)
         out_w = int(1 + (W - self.pool_w) / self.stride)
@@ -324,5 +327,122 @@ class Pooling:
 
         dcol = dmax.reshape(dmax.shape[0] * dmax.shape[1] * dmax.shape[2], -1)
         dx = col2im(dcol, self.x.shape, self.pool_h, self.pool_w, self.stride, self.pad)
+
+        return dx
+
+
+class Dropout(Layer):
+    """
+    http://arxiv.org/abs/1207.0580
+    """
+
+    def __init__(self, dropout_ratio=0.5):
+        Layer.__init__(self)
+        self.dropout_ratio = dropout_ratio
+        self.mask = None
+
+    def forward(self, x, *args, **kwargs):
+        if kwargs.get('train_flg', True):
+            self.mask = np.random.rand(*x.shape) > self.dropout_ratio
+            return x * self.mask
+        else:
+            return x * (1.0 - self.dropout_ratio)
+
+    def backward(self, dout):
+        return dout * self.mask
+
+
+class BatchNormalization(Layer, State):
+    """
+    http://arxiv.org/abs/1502.03167
+    """
+
+    def __init__(self, gamma_initializer=np.ones, beta_initializer=np.zeros, momentum=0.9, running_mean=None,
+                 running_var=None):
+        Layer.__init__(self)
+        State.__init__(self, {
+            'gamma': None,
+            'beta': None,
+        })
+        if gamma_initializer is None:
+            gamma_initializer = np.ones_like
+        if beta_initializer is None:
+            beta_initializer = np.zeros_like
+        self.gamma_initializer = gamma_initializer
+        self.beta_initializer = beta_initializer
+        self.momentum = momentum
+        self.input_shape = None
+
+        self.running_mean = running_mean
+        self.running_var = running_var
+
+        self.batch_size = None
+        self.xc = None
+        self.std = None
+
+    def forward(self, x, *args, **kwargs):
+        if self.param['gamma'] is None:
+            self.param['gamma'] = Param(param=self.gamma_initializer((x.size//x.shape[0],), dtype=np.float32))
+        if self.param['beta'] is None:
+            self.param['beta'] = Param(param=self.beta_initializer((x.size//x.shape[0],), dtype=np.float32))
+
+        self.input_shape = x.shape
+        if x.ndim != 2:
+            N, C, H, W = x.shape
+            x = x.reshape(N, -1)
+
+        out = self.__forward(x, kwargs.get('train_flg', True))
+
+        return out.reshape(*self.input_shape)
+
+    def __forward(self, x, *args, **kwargs):
+        if self.running_mean is None:
+            N, D = x.shape
+            self.running_mean = np.zeros(D)
+            self.running_var = np.zeros(D)
+
+        if kwargs.get('train_flg', True):
+            mu = x.mean(axis=0)
+            xc = x - mu
+            var = np.mean(xc ** 2, axis=0)
+            std = np.sqrt(var + 10e-7)
+            xn = xc / std
+
+            self.batch_size = x.shape[0]
+            self.xc = xc
+            self.xn = xn
+            self.std = std
+            self.running_mean = self.momentum * self.running_mean + (1 - self.momentum) * mu
+            self.running_var = self.momentum * self.running_var + (1 - self.momentum) * var
+        else:
+            xc = x - self.running_mean
+            xn = xc / ((np.sqrt(self.running_var + 10e-7)))
+
+        out = self.param['gamma'].param * xn + self.param['beta'].param
+        return out
+
+    def backward(self, dout):
+        if dout.ndim != 2:
+            N, C, H, W = dout.shape
+            dout = dout.reshape(N, -1)
+
+        dx = self.__backward(dout)
+
+        dx = dx.reshape(*self.input_shape)
+        return dx
+
+    def __backward(self, dout):
+        dbeta = dout.sum(axis=0)
+        dgamma = np.sum(self.xn * dout, axis=0)
+        dxn = self.param['gamma'].param * dout
+        dxc = dxn / self.std
+        dstd = -np.sum((dxn * self.xc) / (self.std * self.std), axis=0)
+        dvar = 0.5 * dstd / self.std
+        dxc += (2.0 / self.batch_size) * self.xc * dvar
+        dmu = np.sum(dxc, axis=0)
+        dx = dxc - dmu / self.batch_size
+
+        self.param['gamma'].grad = dgamma
+        self.param['beta'].grad = dbeta
 
         return dx

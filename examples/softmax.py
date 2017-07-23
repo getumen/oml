@@ -28,7 +28,7 @@ data = np.hstack((x, t.reshape(-1, 1)))
 
 np.random.shuffle(data)
 
-train_index = np.random.choice(range(data.shape[0]), data.shape[0] // 2, replace=False)
+train_index = np.random.choice(range(data.shape[0]), data.shape[0] // 7 * 6, replace=False)
 test_index = list(set(range(data.shape[0])).difference(set(train_index)))
 
 train_data = data[train_index, :]
@@ -36,7 +36,7 @@ test_data = data[test_index, :]
 
 
 train_iter = NumpyIterator(train_data, batch_size=100)
-test_iter = NumpyIterator(test_data, batch_size=len(test_index))
+test_iter = NumpyIterator(test_data, batch_size=100)
 
 model1 = SoftmaxRegression(feature, target, reg=L1(0.01/np.sqrt(x.shape[1])))
 optimizer = PrimalDualAdaGrad(model1)

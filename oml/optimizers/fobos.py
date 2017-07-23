@@ -37,7 +37,7 @@ class Fobos(optimizer.Optimizer):
         else:
             self.hyper_parameter['mu'] = 0
 
-    def rule(self, key, layer):
+    def rule(self, i, key, layer):
         if self.hyper_parameter['mu'] == 0:
             layer.param[key].param -= self.hyper_parameter['step_size'] / np.sqrt(self.t) * layer.param[key].grad
         else:

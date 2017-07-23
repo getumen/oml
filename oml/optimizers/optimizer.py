@@ -46,10 +46,10 @@ class Optimizer:
 
                 self.model.compute_grad()
 
-                for layer in self.model.layers:
+                for i, layer in enumerate(self.model.layers):
                     if isinstance(layer, State):
                         for key in layer.param.keys():
-                            self.rule(key, layer)
+                            self.rule(i, key, layer)
 
                 if max_iter and max_iter < self.t - init_t:
                     break
@@ -64,5 +64,5 @@ class Optimizer:
         self.model.evaluate_model(test_iter)
         test_iter.initialize()
 
-    def rule(self, key, layer):
+    def rule(self, i, key, layer):
         raise NotImplementedError()

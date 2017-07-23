@@ -33,21 +33,21 @@ class AdaGrad(optimizer.Optimizer):
         self.hyper_parameter['delta'] = delta
         self.state['squared_cumulative_grad'] = {}
 
-    def rule(self, key, layer):
+    def rule(self, i, key, layer):
         grad = layer.param[key].grad
-        self.state['squared_cumulative_grad'][key] \
-            = self.state['squared_cumulative_grad'].get(key, np.zeros_like(grad)) + np.multiply(grad, grad)
+        self.state['squared_cumulative_grad'][str(i)+key] \
+            = self.state['squared_cumulative_grad'].get(str(i)+key, np.zeros_like(grad)) + np.multiply(grad, grad)
 
         layer.param[key].param -= \
             self.hyper_parameter['step_size'] * grad / (
-                np.sqrt(self.state['squared_cumulative_grad'][key])
+                np.sqrt(self.state['squared_cumulative_grad'][str(i)+key])
                 + self.hyper_parameter['delta']
             )
 
         if isinstance(layer.param[key], ProximalOracle):
             layer.param[key].param = layer.param[key].reg.proximal(
                 layer.param[key].param, self.hyper_parameter['step_size'] / (
-                    np.sqrt(self.state['squared_cumulative_grad'][key])
+                    np.sqrt(self.state['squared_cumulative_grad'][str(i)+key])
                     + self.hyper_parameter['delta']
                 )
             )
@@ -77,27 +77,27 @@ class PrimalDualAdaGrad(optimizer.Optimizer):
         self.state['averaged_cumulative_grad'] = {}
         self.state['squared_cumulative_grad'] = {}
 
-    def rule(self, key, layer):
+    def rule(self, i, key, layer):
         grad = layer.param[key].grad
-        self.state['squared_cumulative_grad'][key] = self.state['squared_cumulative_grad'].get(
-            key, np.zeros_like(grad)
+        self.state['squared_cumulative_grad'][str(i) + key] = self.state['squared_cumulative_grad'].get(
+            str(i) + key, np.zeros_like(grad)
         ) + np.multiply(grad, grad)
-        self.state['averaged_cumulative_grad'][key] = \
+        self.state['averaged_cumulative_grad'][str(i) + key] = \
             (
-                self.state['averaged_cumulative_grad'].get(key, np.zeros_like(grad)) * (self.t - 1)
+                self.state['averaged_cumulative_grad'].get(str(i) + key, np.zeros_like(grad)) * (self.t - 1)
                 + grad
             ) / self.t
 
         layer.param[key].param = \
-            -self.t * self.hyper_parameter['step_size'] * self.state['averaged_cumulative_grad'][key] / (
-                                     np.sqrt(self.state['squared_cumulative_grad'][key]) +
-                                     self.hyper_parameter['delta']
-                                 )
+            -self.t * self.hyper_parameter['step_size'] * self.state['averaged_cumulative_grad'][str(i) + key] / (
+                np.sqrt(self.state['squared_cumulative_grad'][str(i) + key]) +
+                self.hyper_parameter['delta']
+            )
 
         if isinstance(layer.param[key], ProximalOracle):
             layer.param[key].param = layer.param[key].reg.proximal(
                 layer.param[key].param, self.hyper_parameter['step_size'] * self.t / (
-                    np.sqrt(self.state['squared_cumulative_grad'][key])
+                    np.sqrt(self.state['squared_cumulative_grad'][str(i)+key])
                     + self.hyper_parameter['delta']
                 )
             )
