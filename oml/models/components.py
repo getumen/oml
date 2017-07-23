@@ -124,7 +124,7 @@ class SoftPlus(Layer):
         return F.softplus(self.x)
 
     def backward(self, dout):
-        return np.multiply(np.exp(self.x) / np.add(1, np.exp(self.x)), dout)
+        return np.multiply(F.sigmoid(self.x), dout)
 
 
 class Gauss(LastLayer):
