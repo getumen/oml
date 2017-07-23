@@ -42,9 +42,6 @@ class L2Sq(Reg, FineteLipschitz):
     However, if we do not have neither Lipschitz constant nor bounded parameter space,
     all online learning algorithms attain exponential regret!
     So we assume parameter space is bounded or objective has finite Lipchitz constant.
-    Ashok Cutkosky, Kwabena Boahen
-    "Online Learning Without Prior Information"
-    COLT 2017
     """
 
     def __init__(self, param=0.01):
@@ -71,7 +68,7 @@ class L1(Reg, FineteLipschitz):
         return np.sum(np.absolute(w))
 
     def proximal(self, w, step_size):
-        return np.multiply(np.sign(w), np.maximum(np.absolute(w) - self.param * step_size, 0))
+        return np.sign(w) * np.maximum(np.absolute(w) - self.param * step_size, 0)
 
 
 class Trace(Reg, FineteLipschitz):

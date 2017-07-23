@@ -51,11 +51,12 @@ class Classifier(BaseModel):
             x, t = data[:, :-1], data[:, -1]
             t = np.asarray(t).reshape(t.size)
             y = self.predict(x, train_flg=False)
-            y = np.argmax(y, axis=1)
+            y = np.argmax(y, axis=1).reshape(t.shape)
             accuracy += np.sum(y == t)
             sample_num += x.shape[0]
 
         print('=== Accuracy: {}'.format(accuracy / sample_num))
+        return accuracy / sample_num
 
 
 class Regression(BaseModel):
@@ -69,3 +70,4 @@ class Regression(BaseModel):
             sample_num += x.shape[0]
 
         print('=== RMSE: {}'.format(np.sqrt(error / sample_num)))
+        return np.sqrt(error / sample_num)

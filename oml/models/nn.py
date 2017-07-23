@@ -7,6 +7,7 @@ from __future__ import division
 from oml.models.components import Affine, Convolution, Pooling, Softmax, State, Relu, BatchNormalization, Dropout
 from oml.models.regulizers import L2Sq, Nothing
 from oml.models.model import Classifier
+from oml.functions import Differentiable
 
 import numpy as np
 
@@ -15,7 +16,7 @@ def compute_output_size(input_size, kernel_size, stride, padding):
     return (input_size - kernel_size + 2 * padding) // stride + 1
 
 
-class NN(Classifier):
+class NN(Classifier, Differentiable):
     def __init__(self, input_shape=(1, 28, 28), last_layer=Softmax(), architecture=(
             {'layer': 'conv', 'kernel_num': 32, 'kernel_size': 3, 'stride': 1, 'padding': 1},
             {'layer': 'batch_normalization'},
@@ -24,6 +25,7 @@ class NN(Classifier):
             {'layer': 'affine', 'unit_num': 50, 'reg': L2Sq(param=0.001)},
             {'layer': 'dropout'}
     )):
+        Differentiable.__init__(self, gamma=1)
         self.input_shape = input_shape
         layers = []
         channel, height, width = input_shape

@@ -14,26 +14,29 @@ class Optimizer:
             self,
             model,
             t=0,
-            num_of_t=1
+            num_of_target=1
     ):
         self.t = t
 
         self.model = model
         self.state = {}
         self.hyper_parameter = {}
-        self.num_of_t = num_of_t
+        self.num_of_target = num_of_target
+        self.loss = []
+        self.evaluation = []
 
     def page2data(self, page):
         data = np.matrix(list(page))
-        if self.num_of_t == 1:
-            x, t = data[:, :-self.num_of_t], np.squeeze(np.asarray(data[:, -self.num_of_t]))
+        if self.num_of_target == 1:
+            x, t = data[:, :-self.num_of_target], np.squeeze(np.asarray(data[:, -self.num_of_target]))
         else:
-            x, t = data[:, :-self.num_of_t], data[:, -self.num_of_t]
+            x, t = data[:, :-self.num_of_target], data[:, -self.num_of_target]
         return x, t
 
     def optimize(self, train_iter, test_iter, epoch=20, max_iter=None, show_loss=False, show_evaluation=False):
 
         init_t = self.t
+        loss = None
 
         for current_epoch in range(epoch):
             for page in train_iter.pages:
@@ -56,7 +59,8 @@ class Optimizer:
 
                 self.model.clear_grad()
             if show_evaluation:
-                self.model.evaluate_model(test_iter)
+                self.evaluation.append(self.model.evaluate_model(test_iter))
+                self.loss.append(loss)
             train_iter.initialize()
             test_iter.initialize()
 

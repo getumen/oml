@@ -23,13 +23,13 @@ class Fobos(optimizer.Optimizer):
             model,
             step_size=0.01,
             t=0,
-            num_of_t=1
+            num_of_target=1
     ):
         optimizer.Optimizer.__init__(
             self,
             model,
             t=t,
-            num_of_t=num_of_t,
+            num_of_target=num_of_target,
         )
         self.hyper_parameter['step_size'] = step_size
         if isinstance(model, StrongConvexity):

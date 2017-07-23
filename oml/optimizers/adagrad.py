@@ -20,7 +20,7 @@ class AdaGrad(optimizer.Optimizer):
     def __init__(
             self,
             model,
-            step_size=0.01,
+            step_size=0.1,
             t=0,
             delta=1e-4,
     ):
@@ -35,19 +35,19 @@ class AdaGrad(optimizer.Optimizer):
 
     def rule(self, i, key, layer):
         grad = layer.param[key].grad
-        self.state['squared_cumulative_grad'][str(i)+key] \
-            = self.state['squared_cumulative_grad'].get(str(i)+key, np.zeros_like(grad)) + np.multiply(grad, grad)
+        self.state['squared_cumulative_grad'][str(i) + key] \
+            = self.state['squared_cumulative_grad'].get(str(i) + key, np.zeros_like(grad)) + np.multiply(grad, grad)
 
         layer.param[key].param -= \
             self.hyper_parameter['step_size'] * grad / (
-                np.sqrt(self.state['squared_cumulative_grad'][str(i)+key])
+                np.sqrt(self.state['squared_cumulative_grad'][str(i) + key])
                 + self.hyper_parameter['delta']
             )
 
         if isinstance(layer.param[key], ProximalOracle):
             layer.param[key].param = layer.param[key].reg.proximal(
                 layer.param[key].param, self.hyper_parameter['step_size'] / (
-                    np.sqrt(self.state['squared_cumulative_grad'][str(i)+key])
+                    np.sqrt(self.state['squared_cumulative_grad'][str(i) + key])
                     + self.hyper_parameter['delta']
                 )
             )
@@ -63,7 +63,7 @@ class PrimalDualAdaGrad(optimizer.Optimizer):
     def __init__(
             self,
             model,
-            step_size=0.001,
+            step_size=0.01,
             t=0,
             delta=1e-4,
     ):
@@ -97,7 +97,7 @@ class PrimalDualAdaGrad(optimizer.Optimizer):
         if isinstance(layer.param[key], ProximalOracle):
             layer.param[key].param = layer.param[key].reg.proximal(
                 layer.param[key].param, self.hyper_parameter['step_size'] * self.t / (
-                    np.sqrt(self.state['squared_cumulative_grad'][str(i)+key])
+                    np.sqrt(self.state['squared_cumulative_grad'][str(i) + key])
                     + self.hyper_parameter['delta']
                 )
             )
