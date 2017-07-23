@@ -62,11 +62,11 @@ def opt_test(optimizer, label):
     }
 
 
+opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
 opt_test(AdaGrad(NN(architecture=architecture)), 'AdaGrad')
 opt_test(PrimalDualAdaGrad(NN(architecture=architecture)), 'AdaRDA')
 opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
 opt_test(Rda(NN(architecture=architecture)), 'RDA')
-opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
 
 
 def plot(result):

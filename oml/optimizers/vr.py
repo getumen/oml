@@ -74,7 +74,7 @@ class Svrg(Optimizer):
                 for i, layer in enumerate(self.model.layers):
                     if isinstance(layer, State):
                         for key in layer.param.keys():
-                            self.state['last_epoch_grad'][key] = layer.param[key].grad
+                            self.state['last_epoch_grad'][str(i) + key] = layer.param[key].grad
                             layer.param[key].param = self.state['last_iter_param'][str(i) + key]
                 self.model.clear_grad()
 
@@ -90,7 +90,7 @@ class Svrg(Optimizer):
                 for i, layer in enumerate(self.model.layers):
                     if isinstance(layer, State):
                         for key in layer.param.keys():
-                            v = layer.param[key].grad - self.state['last_epoch_grad'][str(i)+key] \
+                            v = layer.param[key].grad - self.state['last_epoch_grad'][str(i) + key] \
                                 + self.state['total_grad'][str(i) + key]
                             layer.param[key].param -= self.hyper_parameter['step_size'] * v
                             if isinstance(layer.param[key], ProximalOracle):
@@ -98,7 +98,7 @@ class Svrg(Optimizer):
                                     layer.param[key].param,
                                     self.hyper_parameter['step_size']
                                 )
-                            self.state['last_iter_param'][str(i)+key] = layer.param[key].param
+                            self.state['last_iter_param'][str(i) + key] = layer.param[key].param
 
                 if max_iter and max_iter < self.t - init_t:
                     break
