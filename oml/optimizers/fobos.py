@@ -35,10 +35,12 @@ class Fobos(optimizer.Optimizer):
         if isinstance(model, StrongConvexity):
             self.hyper_parameter['mu'] = model.mu
         else:
-            self.hyper_parameter['mu'] = 0
+            self.hyper_parameter['mu'] = None
 
     def rule(self, i, key, layer):
-        if self.hyper_parameter['mu'] == 0:
+        if self.hyper_parameter['mu'] is None:
+            layer.param[key].param -= self.hyper_parameter['step_size'] * layer.param[key].grad
+        elif self.hyper_parameter['mu'] == 0:
             layer.param[key].param -= self.hyper_parameter['step_size'] / np.sqrt(self.t) * layer.param[key].grad
         else:
             layer.param[key].param -= layer.param[key].grad / self.t / self.hyper_parameter['mu']

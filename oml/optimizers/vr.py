@@ -23,7 +23,7 @@ class Svrg(Optimizer):
      Advances in Neural Information Processing Systems (2016): 1145-1153.
     """
 
-    def __init__(self, model, t=0, step_size=0.1):
+    def __init__(self, model, t=0, step_size=0.01):
         Optimizer.__init__(self, model, t, num_of_target=1)
         if isinstance(model, Differentiable):
             self.hyper_parameter['step_size'] = step_size / (3 * model.gamma)

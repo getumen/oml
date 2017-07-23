@@ -20,7 +20,7 @@ class AdaGrad(optimizer.Optimizer):
     def __init__(
             self,
             model,
-            step_size=0.1,
+            step_size=0.01,
             t=0,
             delta=1e-4,
     ):

@@ -51,7 +51,7 @@ class L2Sq(Reg, FineteLipschitz):
         return self.param * np.linalg.norm(w) ** 2 / 2
 
     def proximal(self, w, step_size):
-        return w - self.param * step_size * w
+        return (1 - self.param * step_size) * w
 
 
 class L1(Reg, FineteLipschitz):
@@ -65,14 +65,13 @@ class L1(Reg, FineteLipschitz):
         Reg.__init__(self, param)
 
     def apply(self, w):
-        return np.sum(np.absolute(w))
+        return self.param * np.sum(np.absolute(w))
 
     def proximal(self, w, step_size):
         return np.sign(w) * np.maximum(np.absolute(w) - self.param * step_size, 0)
 
 
 class Trace(Reg, FineteLipschitz):
-
     """
     computational complexity is $O(d^3)$!
     """
@@ -83,16 +82,15 @@ class Trace(Reg, FineteLipschitz):
     def apply(self, w):
         if w.ndim != 2:
             raise ValueError("Dimension must be 2!")
-        return self.param*np.trace(w.T.dot(w))
+        return self.param * np.trace(w.T.dot(w))
 
     def proximal(self, w, step_size):
         U, s, V = np.linalg.svd(w, full_matrices=False)
-        s = np.sign(s) * np.maximum(np.absolute(s)-self.param*step_size, 0)
+        s = np.sign(s) * np.maximum(np.absolute(s) - self.param * step_size, 0)
         return U.dot(np.diag(s)).dot(V)
 
 
 class PositiveBox(Reg):
-
     def __init__(self):
         Reg.__init__(self)
 
@@ -127,7 +125,7 @@ class ProximalAverage:
                 Advances in Neural Information Processing Systems. 2016.
                 """)
         if weight is None:
-            self.weight = np.ones_like(self.reg_list)/self.size
+            self.weight = np.ones_like(self.reg_list) / self.size
         else:
             self.weight = weight / np.sum(weight)
 

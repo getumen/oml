@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 from oml.models.components import Affine, Gauss, Softmax, State, Poisson
 from oml.models.regulizers import Nothing
 from oml.models.model import Classifier, Regression
-from oml.functions import Differentiable
+from oml.functions import Differentiable, StrongConvexity
 
 import numpy as np
 
@@ -16,7 +16,7 @@ Generalized Linear Models
 """
 
 
-class LinearRegression(Regression, Differentiable):
+class LinearRegression(Regression, Differentiable, StrongConvexity):
     def __init__(self, input_size, output_size, reg=Nothing()
                  ):
         Regression.__init__(
@@ -25,9 +25,10 @@ class LinearRegression(Regression, Differentiable):
             Gauss(),
         )
         Differentiable.__init__(self, gamma=1)
+        StrongConvexity.__init__(self, mu=1)
 
 
-class PoissonRegression(Regression, Differentiable):
+class PoissonRegression(Regression, Differentiable, StrongConvexity):
     def __init__(self, input_size, output_size, reg=Nothing(), domain_rad=1):
         Regression.__init__(
             self,
@@ -35,9 +36,10 @@ class PoissonRegression(Regression, Differentiable):
             Poisson(),
         )
         Differentiable.__init__(self, gamma=np.exp(domain_rad))
+        StrongConvexity.__init__(self, mu=0)
 
 
-class SoftmaxRegression(Classifier, Differentiable):
+class SoftmaxRegression(Classifier, Differentiable, StrongConvexity):
     def __init__(
             self,
             input_size,
@@ -52,3 +54,4 @@ class SoftmaxRegression(Classifier, Differentiable):
             Softmax(),
         )
         Differentiable.__init__(self, gamma=1)
+        StrongConvexity.__init__(self, mu=0)
