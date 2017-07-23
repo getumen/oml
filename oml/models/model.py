@@ -38,12 +38,12 @@ class BaseModel:
         for layer in reversed(self.layers):
             dout = layer.backward(dout)
 
-    def evaluate_model(self, test_iter):
+    def evaluate_model(self, test_iter, show=False):
         raise NotImplementedError()
 
 
 class Classifier(BaseModel):
-    def evaluate_model(self, test_iter):
+    def evaluate_model(self, test_iter, show=True):
         accuracy = 0
         sample_num = 0
         for page in test_iter.pages:
@@ -54,13 +54,13 @@ class Classifier(BaseModel):
             y = np.argmax(y, axis=1).reshape(t.shape)
             accuracy += np.sum(y == t)
             sample_num += x.shape[0]
-
-        print('=== Accuracy: {}'.format(accuracy / sample_num))
+        if show:
+            print('=== Accuracy: {}'.format(accuracy / sample_num))
         return accuracy / sample_num
 
 
 class Regression(BaseModel):
-    def evaluate_model(self, test_iter):
+    def evaluate_model(self, test_iter, show=False):
         error = 0
         sample_num = 0
         for page in test_iter.pages:
@@ -68,6 +68,6 @@ class Regression(BaseModel):
             x, t = data[:, :-1], data[:, -1]
             error += np.linalg.norm(t - self.predict(x, train_flg=False)) ** 2
             sample_num += x.shape[0]
-
-        print('=== RMSE: {}'.format(np.sqrt(error / sample_num)))
+        if show:
+            print('=== RMSE: {}'.format(np.sqrt(error / sample_num)))
         return np.sqrt(error / sample_num)

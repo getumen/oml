@@ -80,6 +80,7 @@ class Svrg(Optimizer):
 
                 # parameter update
                 loss = self.model.loss(x, t)
+                self.loss.append(loss)
 
                 if show_loss:
                     print('=== loss: {}'.format(loss))
@@ -89,7 +90,7 @@ class Svrg(Optimizer):
                 for i, layer in enumerate(self.model.layers):
                     if isinstance(layer, State):
                         for key in layer.param.keys():
-                            v = layer.param[key].grad - self.state['last_epoch_grad'][key] \
+                            v = layer.param[key].grad - self.state['last_epoch_grad'][str(i)+key] \
                                 + self.state['total_grad'][str(i) + key]
                             layer.param[key].param -= self.hyper_parameter['step_size'] * v
                             if isinstance(layer.param[key], ProximalOracle):
@@ -97,15 +98,14 @@ class Svrg(Optimizer):
                                     layer.param[key].param,
                                     self.hyper_parameter['step_size']
                                 )
-                            self.state['last_iter_param'][key] = layer.param[key].param
+                            self.state['last_iter_param'][str(i)+key] = layer.param[key].param
 
                 if max_iter and max_iter < self.t - init_t:
                     break
 
                 self.model.clear_grad()
-            if show_evaluation:
-                self.evaluation.append(self.model.evaluate_model(test_iter))
-                self.loss.append(loss)
+
+            self.evaluation.append(self.model.evaluate_model(test_iter, show_evaluation))
             train_iter.initialize()
             test_iter.initialize()
 

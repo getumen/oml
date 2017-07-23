@@ -43,6 +43,7 @@ class Optimizer:
                 x, t = self.page2data(page)
                 self.t += 1
                 loss = self.model.loss(x, t)
+                self.loss.append(loss)
 
                 if show_loss:
                     print('=== loss: {}'.format(loss))
@@ -58,9 +59,7 @@ class Optimizer:
                     break
 
                 self.model.clear_grad()
-            if show_evaluation:
-                self.evaluation.append(self.model.evaluate_model(test_iter))
-                self.loss.append(loss)
+            self.evaluation.append(self.model.evaluate_model(test_iter, show=show_evaluation))
             train_iter.initialize()
             test_iter.initialize()
 
