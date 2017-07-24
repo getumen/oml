@@ -25,10 +25,8 @@ class Svrg(Optimizer):
 
     def __init__(self, model, t=0, step_size=0.01):
         Optimizer.__init__(self, model, t, num_of_target=1)
-        if isinstance(model, Differentiable):
-            self.hyper_parameter['step_size'] = step_size / (3 * model.gamma)
-        else:
-            self.hyper_parameter['step_size'] = step_size
+
+        self.hyper_parameter['step_size'] = step_size
         self.state['total_grad'] = {}
         self.state['last_epoch_param'] = {}
         self.state['last_epoch_grad'] = {}
@@ -49,6 +47,10 @@ class Svrg(Optimizer):
                 iter_num += 1
                 self.model.loss(x, t)
                 self.model.compute_grad()
+
+            if isinstance(self.model, Differentiable):
+                self.hyper_parameter['step_size'] = 1 / (3 * self.model.gamma * iter_num)
+
             for i, layer in enumerate(self.model.layers):
                 if isinstance(layer, State):
                     for key in layer.param.keys():

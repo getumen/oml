@@ -14,6 +14,7 @@ from oml.optimizers.fobos import Fobos
 from oml.optimizers.adagrad import AdaGrad, PrimalDualAdaGrad
 from oml.optimizers.rda import Rda
 from oml.optimizers.vr import Svrg
+from oml.optimizers.freerex import FreeRex
 from oml.datasouces.iterator import NumpyIterator
 
 from matplotlib import pyplot as plt
@@ -49,7 +50,7 @@ def opt_test(optimizer, label):
         'evaluation': optimizer.evaluation
     }
 
-
+opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
 opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaGrad')
 opt_test(PrimalDualAdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
 opt_test(Fobos(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FOBOS')
@@ -64,7 +65,7 @@ def plot(result):
         for method in result.keys():
             plt.plot(list(range(len(result[method][title]))), result[method][title], label=method)
         plt.legend()
-    plt.savefig('lr.eps')
+    plt.savefig('lr.png')
 
 
 plot(results)

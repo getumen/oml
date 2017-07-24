@@ -13,6 +13,7 @@ from oml.optimizers.adagrad import PrimalDualAdaGrad, AdaGrad
 from oml.optimizers.rda import Rda
 from oml.optimizers.fobos import Fobos
 from oml.optimizers.vr import Svrg
+from oml.optimizers.freerex import FreeRex
 from oml.datasouces.iterator import NumpyIterator
 from oml.models.components import SoftPlus
 
@@ -38,10 +39,6 @@ test_index = list(set(range(data.shape[0])).difference(set(train_index)))
 train_data = data[train_index, :]
 test_data = data[test_index, :]
 
-
-train_iter = NumpyIterator(train_data, batch_size=100)
-test_iter = NumpyIterator(test_data, batch_size=100)
-
 architecture = [
             {'layer': 'conv', 'kernel_num': 32, 'kernel_size': 3, 'stride': 1, 'padding': 1},
             {'layer': 'activation', 'instance': SoftPlus()},
@@ -54,19 +51,23 @@ results = {}
 
 def opt_test(optimizer, label):
     print(label)
-    optimizer.optimize(train_iter, test_iter, show_evaluation=True, show_loss=True, epoch=1)
+    optimizer.optimize(train_iter, test_iter, show_evaluation=True, show_loss=True, epoch=2)
 
     results[label] = {
         'loss': optimizer.loss,
         'evaluation': optimizer.evaluation
     }
 
+train_iter = NumpyIterator(train_data, batch_size=100)
+test_iter = NumpyIterator(test_data, batch_size=100)
 
-opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
-opt_test(AdaGrad(NN(architecture=architecture)), 'AdaGrad')
-opt_test(PrimalDualAdaGrad(NN(architecture=architecture)), 'AdaRDA')
+
+opt_test(FreeRex(NN(architecture=architecture), step_size=0.001), 'FreeRex')
+opt_test(AdaGrad(NN(architecture=architecture), step_size=0.001), 'AdaGrad')
+opt_test(PrimalDualAdaGrad(NN(architecture=architecture), step_size=0.001), 'AdaRDA')
 opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
 opt_test(Rda(NN(architecture=architecture)), 'RDA')
+opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
 
 
 def plot(result):

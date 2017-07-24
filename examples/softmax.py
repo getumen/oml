@@ -13,6 +13,7 @@ from oml.optimizers.adagrad import PrimalDualAdaGrad, AdaGrad
 from oml.optimizers.rda import Rda
 from oml.optimizers.fobos import Fobos
 from oml.optimizers.vr import Svrg
+from oml.optimizers.freerex import FreeRex
 from oml.datasouces.iterator import NumpyIterator
 
 from sklearn.datasets import fetch_mldata
@@ -53,6 +54,7 @@ def opt_test(optimizer, label):
         'evaluation': optimizer.evaluation
     }
 
+opt_test(FreeRex(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'FreeRex')
 opt_test(AdaGrad(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdaGrad')
 opt_test(PrimalDualAdaGrad(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdaRDA')
 opt_test(Fobos(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'FOBOS')
@@ -67,6 +69,6 @@ def plot(result):
         for method in result.keys():
             plt.plot(list(range(len(result[method][title]))), result[method][title], label=method)
         plt.legend()
-    plt.savefig('softmax.eps')
+    plt.savefig('softmax.png')
 
 plot(results)
