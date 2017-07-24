@@ -15,11 +15,12 @@ from oml.optimizers.fobos import Fobos
 from oml.optimizers.vr import Svrg
 from oml.optimizers.freerex import FreeRex
 from oml.datasouces.iterator import NumpyIterator
-from oml.models.components import SoftPlus
+from oml.models.components import Relu
 
 from sklearn.datasets import fetch_mldata
 
 from matplotlib import pyplot as plt
+import os
 
 mnist = fetch_mldata('MNIST original')
 
@@ -40,43 +41,49 @@ train_data = data[train_index, :]
 test_data = data[test_index, :]
 
 architecture = [
-            {'layer': 'conv', 'kernel_num': 32, 'kernel_size': 3, 'stride': 1, 'padding': 1},
-            {'layer': 'activation', 'instance': SoftPlus()},
-            {'layer': 'pooling', 'pool_size': 2, 'stride': 2, 'padding': 0},
-            {'layer': 'affine', 'unit_num': 50, 'reg': L1(param=0.00001)},
+    {'layer': 'conv', 'kernel_num': 16, 'kernel_size': 3, 'stride': 1, 'padding': 1},
+    {'layer': 'batch_normalization'},
+    {'layer': 'activation', 'instance': Relu()},
+    {'layer': 'affine', 'unit_num': 150, 'reg': L2Sq(param=0.001)},
 ]
 
-results = {}
+
+out = 'cnn_out_l1'
 
 
 def opt_test(optimizer, label):
-    print(label)
-    optimizer.optimize(train_iter, test_iter, show_evaluation=True, show_loss=True, epoch=2)
+    try:
+        os.mkdir(out)
+    except FileExistsError:
+        pass
+    if not os.path.isfile('./{}/{}_{}.csv'.format(out, label, 'loss')):
+        print(label)
+        optimizer.optimize(train_iter, test_iter, show_evaluation=True, show_loss=True, epoch=5)
+        np.savetxt('./{}/{}_{}.csv'.format(out, label, 'loss'), optimizer.loss, delimiter=',')
+        np.savetxt('./{}/{}_{}.csv'.format(out, label, 'evaluation'), optimizer.evaluation, delimiter=',')
 
-    results[label] = {
-        'loss': optimizer.loss,
-        'evaluation': optimizer.evaluation
-    }
 
 train_iter = NumpyIterator(train_data, batch_size=100)
 test_iter = NumpyIterator(test_data, batch_size=100)
 
-
-opt_test(FreeRex(NN(architecture=architecture), step_size=0.001), 'FreeRex')
-opt_test(AdaGrad(NN(architecture=architecture), step_size=0.001), 'AdaGrad')
-opt_test(PrimalDualAdaGrad(NN(architecture=architecture), step_size=0.001), 'AdaRDA')
+opt_test(AdaGrad(NN(architecture=architecture)), 'AdaGrad')
+opt_test(FreeRex(NN(architecture=architecture)), 'FreeRex')
+opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
+opt_test(PrimalDualAdaGrad(NN(architecture=architecture)), 'AdaRDA')
 opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
 opt_test(Rda(NN(architecture=architecture)), 'RDA')
-opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
 
 
-def plot(result):
+def plot():
     for i, title in enumerate(['loss', 'evaluation']):
-        plt.subplot(1, 2, i+1)
+        plt.subplot(1, 2, i + 1)
         plt.title(title)
-        for method in result.keys():
-            plt.plot(list(range(len(result[method][title]))), result[method][title], label=method)
+        for method in ['AdaGrad', 'FreeRex', 'SVRG', 'AdaRDA', 'FOBOS', 'RDA']:
+            r = np.loadtxt('./{}/{}_{}.csv'.format(out, method, title))
+            r = r[::max(len(r) // 100, 1)]
+            plt.plot(list(range(len(r))), r, label=method)
         plt.legend()
-    plt.savefig('cnn.eps')
+    plt.savefig('{}.png'.format(out))
 
-plot(results)
+
+plot()
