@@ -42,8 +42,8 @@ test_data = data[test_index, :]
 
 architecture = [
     {'layer': 'conv', 'kernel_num': 16, 'kernel_size': 3, 'stride': 1, 'padding': 1},
-    {'layer': 'batch_normalization'},
     {'layer': 'activation', 'instance': Relu()},
+    {'layer': 'pooling', 'pool_size': 2, 'stride': 2, 'padding': 0},
     {'layer': 'affine', 'unit_num': 150, 'reg': L2Sq(param=0.001)},
 ]
 
