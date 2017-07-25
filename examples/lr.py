@@ -47,7 +47,7 @@ def opt_test(optimizer, label):
 
     results[label] = {
         'loss': optimizer.loss,
-        'evaluation': optimizer.evaluation
+        'rmse': optimizer.evaluation
     }
 
 opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
@@ -59,7 +59,7 @@ opt_test(Svrg(LinearRegression(feature, target, reg=L2Sq(0.01))), 'SVRG')
 
 
 def plot(result):
-    for i, title in enumerate(['loss', 'evaluation']):
+    for i, title in enumerate(['loss', 'rmse']):
         plt.subplot(1, 2, i + 1)
         plt.title(title)
         for method in result.keys():
