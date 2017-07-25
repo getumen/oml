@@ -48,7 +48,7 @@ architecture = [
 ]
 
 
-out = 'cnn_out_l2'
+out = 'cnn_out_l1'
 
 
 def opt_test(optimizer, label):
@@ -70,6 +70,7 @@ opt_test(AdaGrad(NN(architecture=architecture)), 'AdaGrad')
 opt_test(FreeRex(NN(architecture=architecture)), 'FreeRex')
 opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
 opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
+opt_test(Rda(NN(architecture=architecture)), 'RDA')
 
 
 def plot():
