@@ -44,11 +44,11 @@ architecture = [
     {'layer': 'conv', 'kernel_num': 16, 'kernel_size': 3, 'stride': 1, 'padding': 1},
     {'layer': 'activation', 'instance': Relu()},
     {'layer': 'pooling', 'pool_size': 2, 'stride': 2, 'padding': 0},
-    {'layer': 'affine', 'unit_num': 150, 'reg': L2Sq(param=0.001)},
+    {'layer': 'affine', 'unit_num': 150, 'reg': L1(param=0.001/1000)},
 ]
 
 
-out = 'cnn_out_l2'
+out = 'cnn_out_l1'
 
 
 def opt_test(optimizer, label):
@@ -70,6 +70,7 @@ opt_test(AdaGrad(NN(architecture=architecture)), 'AdaGrad')
 opt_test(FreeRex(NN(architecture=architecture)), 'FreeRex')
 opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
 opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
+opt_test(Rda(NN(architecture=architecture)), 'RDA')
 
 
 def plot():
