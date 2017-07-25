@@ -32,85 +32,53 @@ class Svrg(Optimizer):
         self.state['last_epoch_grad'] = {}
         self.state['last_iter_param'] = {}
 
-    def optimize(self, train_iter, test_iter, epoch=20, max_iter=None, show_loss=False, show_evaluation=False):
+    def pre_epoch(self, train_iter, test_iter):
+        # compute total grad
+        iter_num = 0
+        loss = None
 
-        init_t = self.t
+        for page in train_iter.pages:
+            x, t = self.page2data(page)
+            iter_num += 1
+            self.model.loss(x, t)
+            self.model.compute_grad()
 
-        for current_epoch in range(epoch):
+        if isinstance(self.model, Differentiable):
+            self.hyper_parameter['step_size'] = 1 / (3 * self.model.gamma * iter_num)
 
-            # compute total grad
-            iter_num = 0
-            loss = None
+        for i, layer in enumerate(self.model.layers):
+            if isinstance(layer, State):
+                for key in layer.param.keys():
+                    self.state['total_grad'][str(i) + key] = layer.param[key].grad / iter_num
+                    self.state['last_epoch_param'][str(i) + key] = layer.param[key].param
+        self.model.clear_grad()
+        train_iter.initialize()
 
-            for page in train_iter.pages:
-                x, t = self.page2data(page)
-                iter_num += 1
-                self.model.loss(x, t)
-                self.model.compute_grad()
+        # update step
 
-            if isinstance(self.model, Differentiable):
-                self.hyper_parameter['step_size'] = 1 / (3 * self.model.gamma * iter_num)
+    def pre_fb_op(self, x, t):
+        # cal last epoch grad
+        for i, layer in enumerate(self.model.layers):
+            if isinstance(layer, State):
+                for key in layer.param.keys():
+                    self.state['last_iter_param'][str(i) + key] = layer.param[key].param
+                    layer.param[key].param = self.state['last_epoch_param'][str(i) + key]
+        self.model.loss(x, t)
+        self.model.compute_grad()
+        for i, layer in enumerate(self.model.layers):
+            if isinstance(layer, State):
+                for key in layer.param.keys():
+                    self.state['last_epoch_grad'][str(i) + key] = layer.param[key].grad
+                    layer.param[key].param = self.state['last_iter_param'][str(i) + key]
+        self.model.clear_grad()
 
-            for i, layer in enumerate(self.model.layers):
-                if isinstance(layer, State):
-                    for key in layer.param.keys():
-                        self.state['total_grad'][str(i) + key] = layer.param[key].grad / iter_num
-                        self.state['last_epoch_param'][str(i) + key] = layer.param[key].param
-            self.model.clear_grad()
-            train_iter.initialize()
-
-            # update step
-
-            for page in train_iter.pages:
-                x, t = self.page2data(page)
-                self.t += 1
-
-                # cal last epoch grad
-                for i, layer in enumerate(self.model.layers):
-                    if isinstance(layer, State):
-                        for key in layer.param.keys():
-                            self.state['last_iter_param'][str(i) + key] = layer.param[key].param
-                            layer.param[key].param = self.state['last_epoch_param'][str(i) + key]
-                self.model.loss(x, t)
-                self.model.compute_grad()
-                for i, layer in enumerate(self.model.layers):
-                    if isinstance(layer, State):
-                        for key in layer.param.keys():
-                            self.state['last_epoch_grad'][str(i) + key] = layer.param[key].grad
-                            layer.param[key].param = self.state['last_iter_param'][str(i) + key]
-                self.model.clear_grad()
-
-                # parameter update
-                loss = self.model.loss(x, t)
-                self.loss.append(loss)
-
-                if show_loss:
-                    print('=== loss: {}'.format(loss))
-
-                self.model.compute_grad()
-
-                for i, layer in enumerate(self.model.layers):
-                    if isinstance(layer, State):
-                        for key in layer.param.keys():
-                            v = layer.param[key].grad - self.state['last_epoch_grad'][str(i) + key] \
-                                + self.state['total_grad'][str(i) + key]
-                            layer.param[key].param -= self.hyper_parameter['step_size'] * v
-                            if isinstance(layer.param[key], ProximalOracle):
-                                layer.param[key].param = layer.param[key].reg.proximal(
-                                    layer.param[key].param,
-                                    self.hyper_parameter['step_size']
-                                )
-                            self.state['last_iter_param'][str(i) + key] = layer.param[key].param
-
-                if max_iter and max_iter < self.t - init_t:
-                    break
-
-                self.model.clear_grad()
-
-            self.evaluation.append(self.model.evaluate_model(test_iter, show_evaluation))
-            train_iter.initialize()
-            test_iter.initialize()
-
-        print('=== Final Evaluation ===')
-        self.model.evaluate_model(test_iter)
-        test_iter.initialize()
+    def rule(self, i, key, layer):
+        v = layer.param[key].grad - self.state['last_epoch_grad'][str(i) + key] \
+            + self.state['total_grad'][str(i) + key]
+        layer.param[key].param -= self.hyper_parameter['step_size'] * v
+        if isinstance(layer.param[key], ProximalOracle):
+            layer.param[key].param = layer.param[key].reg.proximal(
+                layer.param[key].param,
+                self.hyper_parameter['step_size']
+            )
+        self.state['last_iter_param'][str(i) + key] = layer.param[key].param

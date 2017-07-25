@@ -12,7 +12,7 @@ from oml.models.glm import LinearRegression
 from oml.models.regulizers import L1, L2Sq
 from oml.optimizers.fobos import Fobos
 from oml.optimizers.adagrad import AdaGrad, PrimalDualAdaGrad
-from oml.optimizers.rda import Rda
+from oml.optimizers.rda import Rda, AcceleratedRDA
 from oml.optimizers.vr import Svrg
 from oml.optimizers.freerex import FreeRex
 from oml.datasouces.iterator import NumpyIterator
@@ -50,10 +50,11 @@ def opt_test(optimizer, label):
         'rmse': optimizer.evaluation
     }
 
-opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
-opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaGrad')
-opt_test(PrimalDualAdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
-opt_test(Fobos(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FOBOS')
+opt_test(AcceleratedRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccRDA')
+# opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
+# opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaGrad')
+# opt_test(PrimalDualAdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
+# opt_test(Fobos(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FOBOS')
 opt_test(Rda(LinearRegression(feature, target, reg=L2Sq(0.01))), 'RDA')
 opt_test(Svrg(LinearRegression(feature, target, reg=L2Sq(0.01))), 'SVRG')
 
@@ -62,8 +63,12 @@ def plot(result):
     for i, title in enumerate(['loss', 'rmse']):
         plt.subplot(1, 2, i + 1)
         plt.title(title)
+
         for method in result.keys():
-            plt.plot(list(range(len(result[method][title]))), result[method][title], label=method)
+            lst = result[method][title]
+            if len(lst)//100 > 0:
+                lst = lst[::len(lst)//100]
+            plt.plot(list(range(len(lst))), lst, label=method)
         plt.legend()
     plt.savefig('lr.png')
 

@@ -39,9 +39,15 @@ class Optimizer:
         loss = None
 
         for current_epoch in range(epoch):
+
+            self.pre_epoch(train_iter, test_iter)
+
             for page in train_iter.pages:
                 x, t = self.page2data(page)
                 self.t += 1
+
+                self.pre_fb_op(x, t)
+
                 loss = self.model.loss(x, t)
                 self.loss.append(loss)
 
@@ -69,3 +75,9 @@ class Optimizer:
 
     def rule(self, i, key, layer):
         raise NotImplementedError()
+
+    def pre_fb_op(self, x, t):
+        pass
+
+    def pre_epoch(self, train_iter, test_iter):
+        pass

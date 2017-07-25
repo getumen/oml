@@ -10,7 +10,7 @@ from sklearn.preprocessing import maxabs_scale
 from oml.models.glm import SoftmaxRegression
 from oml.models.regulizers import L2Sq, L1
 from oml.optimizers.adagrad import PrimalDualAdaGrad, AdaGrad
-from oml.optimizers.rda import Rda
+from oml.optimizers.rda import Rda, AcceleratedRDA
 from oml.optimizers.fobos import Fobos
 from oml.optimizers.vr import Svrg
 from oml.optimizers.freerex import FreeRex
@@ -47,27 +47,31 @@ results = {}
 
 def opt_test(optimizer, label):
     print(label)
-    optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=100)
+    optimizer.optimize(train_iter, test_iter, show_evaluation=True)
 
     results[label] = {
         'loss': optimizer.loss,
-        'evaluation': optimizer.evaluation
+        'accuracy': optimizer.evaluation
     }
 
-opt_test(FreeRex(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'FreeRex')
+# opt_test(FreeRex(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'FreeRex')
 opt_test(AdaGrad(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdaGrad')
-opt_test(PrimalDualAdaGrad(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdaRDA')
-opt_test(Fobos(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'FOBOS')
+# opt_test(PrimalDualAdaGrad(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdaRDA')
+# opt_test(Fobos(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'FOBOS')
 opt_test(Rda(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'RDA')
-opt_test(Svrg(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'SVRG')
+opt_test(AcceleratedRDA(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AccRDA')
+# opt_test(Svrg(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'SVRG')
 
 
 def plot(result):
-    for i, title in enumerate(['loss', 'evaluation']):
+    for i, title in enumerate(['loss', 'accuracy']):
         plt.subplot(1, 2, i+1)
         plt.title(title)
         for method in result.keys():
-            plt.plot(list(range(len(result[method][title]))), result[method][title], label=method)
+            lst = result[method][title]
+            if len(lst) // 100 > 0:
+                lst = lst[::len(lst) // 100]
+            plt.plot(list(range(len(lst))), lst, label=method)
         plt.legend()
     plt.savefig('softmax.png')
 
