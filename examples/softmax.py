@@ -47,7 +47,7 @@ results = {}
 
 def opt_test(optimizer, label):
     print(label)
-    optimizer.optimize(train_iter, test_iter, show_evaluation=True)
+    optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=100)
 
     results[label] = {
         'loss': optimizer.loss,

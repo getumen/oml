@@ -8,6 +8,8 @@ import numpy as np
 
 from oml.optimizers import optimizer
 from oml.models.components import ProximalOracle
+from oml.functions import StrongConvexity
+import warnings
 
 
 class AdaGrad(optimizer.Optimizer):
@@ -76,6 +78,8 @@ class PrimalDualAdaGrad(optimizer.Optimizer):
         self.hyper_parameter['delta'] = delta
         self.state['averaged_cumulative_grad'] = {}
         self.state['squared_cumulative_grad'] = {}
+        if not isinstance(model, StrongConvexity):
+            warnings.warn("AdaRDA is not appropriate for optimizing non convex objective")
 
     def rule(self, i, key, layer):
         grad = layer.param[key].grad

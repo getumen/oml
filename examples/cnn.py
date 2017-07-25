@@ -48,7 +48,7 @@ architecture = [
 ]
 
 
-out = 'cnn_out_l1'
+out = 'cnn_out_l2'
 
 
 def opt_test(optimizer, label):
@@ -69,15 +69,15 @@ test_iter = NumpyIterator(test_data, batch_size=100)
 opt_test(AdaGrad(NN(architecture=architecture)), 'AdaGrad')
 opt_test(FreeRex(NN(architecture=architecture)), 'FreeRex')
 opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
-opt_test(PrimalDualAdaGrad(NN(architecture=architecture)), 'AdaRDA')
 opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
-opt_test(Rda(NN(architecture=architecture)), 'RDA')
 
 
 def plot():
     for i, title in enumerate(['loss', 'evaluation']):
         plt.subplot(1, 2, i + 1)
         plt.title(title)
+        if title == 'loss':
+            plt.ylim([0, 10])
         for method in ['AdaGrad', 'FreeRex', 'SVRG', 'AdaRDA', 'FOBOS', 'RDA']:
             r = np.loadtxt('./{}/{}_{}.csv'.format(out, method, title))
             r = r[::max(len(r) // 100, 1)]

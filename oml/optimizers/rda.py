@@ -11,6 +11,8 @@ from oml.models.components import ProximalOracle
 
 from oml.functions import StrongConvexity
 
+import warnings
+
 
 class Rda(optimizer.Optimizer):
     """
@@ -35,6 +37,7 @@ class Rda(optimizer.Optimizer):
         if isinstance(model, StrongConvexity):
             self.hyper_parameter['mu'] = model.mu
         else:
+            warnings.warn("RDA is not appropriate for optimizing non convex objective")
             self.hyper_parameter['mu'] = None
 
     def rule(self, i, key, layer):
@@ -45,22 +48,11 @@ class Rda(optimizer.Optimizer):
                 + grad
             ) / self.t
 
-        if self.hyper_parameter['mu'] == 0:
-            layer.param[key].param = \
-                -self.t * self.hyper_parameter['step_size'] * self.state['averaged_cumulative_grad'][
-                    str(i) + key] / np.sqrt(self.t)
-            if isinstance(layer.param[key], ProximalOracle):
-                layer.param[key].param = layer.param[key].reg.proximal(
-                    layer.param[key].param, self.hyper_parameter['step_size'] * np.sqrt(self.t)
-                )
-
-        else:
-            layer.param[key].param = \
-                -self.t * self.hyper_parameter['step_size'] * self.state['averaged_cumulative_grad'][
-                    str(i) + key] * self.t / self.hyper_parameter['mu']
-            if isinstance(layer.param[key], ProximalOracle):
-                layer.param[key].param = layer.param[key].reg.proximal(
-                    layer.param[key].param, self.t / self.hyper_parameter['mu']
-                )
-
+        layer.param[key].param = \
+            -np.sqrt(self.t) * self.hyper_parameter['step_size'] * self.state['averaged_cumulative_grad'][
+                str(i) + key]
+        if isinstance(layer.param[key], ProximalOracle):
+            layer.param[key].param = layer.param[key].reg.proximal(
+                layer.param[key].param, self.hyper_parameter['step_size'] * np.sqrt(self.t)
+            )
 
