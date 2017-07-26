@@ -55,8 +55,8 @@ def opt_test(optimizer, label):
     }
 
 # opt_test(FreeRex(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'FreeRex')
-opt_test(AdaGrad(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdaGrad')
-# opt_test(PrimalDualAdaGrad(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdaRDA')
+# opt_test(AdaGrad(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdaGrad')
+opt_test(PrimalDualAdaGrad(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdaRDA')
 # opt_test(Fobos(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'FOBOS')
 opt_test(Rda(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'RDA')
 opt_test(AcceleratedRDA(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AccRDA')

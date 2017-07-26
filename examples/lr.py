@@ -29,11 +29,10 @@ target = 1
 
 data = np.hstack((x, t.reshape(-1, 1)))
 
-train_index = np.random.choice(range(data.shape[0]), data.shape[0] // 2, replace=False)
-test_index = list(set(range(data.shape[0])).difference(set(train_index)))
+np.random.shuffle(data)
 
-train_data = data[train_index, :]
-test_data = data[test_index, :]
+train_data = data[:data.shape[0] // 2, :]
+test_data = data[data.shape[0] // 2:, :]
 
 train_iter = NumpyIterator(train_data, batch_size=10)
 test_iter = NumpyIterator(test_data)
@@ -53,10 +52,10 @@ def opt_test(optimizer, label):
 opt_test(AcceleratedRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccRDA')
 # opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
 # opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaGrad')
-# opt_test(PrimalDualAdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
+opt_test(PrimalDualAdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
 # opt_test(Fobos(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FOBOS')
 opt_test(Rda(LinearRegression(feature, target, reg=L2Sq(0.01))), 'RDA')
-opt_test(Svrg(LinearRegression(feature, target, reg=L2Sq(0.01))), 'SVRG')
+# opt_test(Svrg(LinearRegression(feature, target, reg=L2Sq(0.01))), 'SVRG')
 
 
 def plot(result):

@@ -101,6 +101,27 @@ class PositiveBox(Reg):
         return np.maximum(w, 0)
 
 
+class NegativeBox(Reg):
+    def __init__(self):
+        Reg.__init__(self)
+
+    def apply(self, w):
+        return np.inf if np.any(w > 0) else 0
+
+    def proximal(self, w, step_size):
+        return np.minimum(w, 0)
+
+
+class Box(Reg):
+    def __init__(self, lower: np.ndarray or float, upper: np.ndarray or float):
+        Reg.__init__(self)
+        self.upper = upper
+        self.lower = lower
+
+    def apply(self, w):
+        return np.inf if np.any(w > self.upper) or np.any(w < self.lower) else 0
+
+
 class ProximalAverage:
     """
     Yu, Yao-Liang.

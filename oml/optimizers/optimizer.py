@@ -58,7 +58,7 @@ class Optimizer:
 
                 for i, layer in enumerate(self.model.layers):
                     if isinstance(layer, State):
-                        for key in layer.param.keys():
+                        for key in layer.update_set:
                             self.rule(i, key, layer)
 
                 if max_iter and max_iter < self.t - init_t:

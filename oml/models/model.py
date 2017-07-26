@@ -66,7 +66,8 @@ class Regression(BaseModel):
         for page in test_iter.pages:
             data = np.matrix(list(page))
             x, t = data[:, :-1], data[:, -1]
-            error += np.linalg.norm(t - self.predict(x, train_flg=False)) ** 2
+            y = self.predict(x, train_flg=False)
+            error += np.linalg.norm(t - y) ** 2
             sample_num += x.shape[0]
         if show:
             print('=== RMSE: {}'.format(np.sqrt(error / sample_num)))
