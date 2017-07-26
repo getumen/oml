@@ -16,7 +16,7 @@ from oml.optimizers.rda import Rda, AcceleratedRDA
 from oml.optimizers.vr import Svrg
 from oml.optimizers.freerex import FreeRex
 from oml.optimizers.adam import Adam, AdMax
-from oml.optimizers.smidas import Smidas
+from oml.optimizers.nesterov import AccSGD
 from oml.datasouces.iterator import NumpyIterator
 
 from matplotlib import pyplot as plt
@@ -51,6 +51,8 @@ def opt_test(optimizer, label):
         'rmse': optimizer.evaluation
     }
 
+opt_test(AccSGD(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccSGD')
+opt_test(AccSGD(LinearRegression(feature, target, reg=L2Sq(0.01)), online=True), 'OnlineAccSGD')
 opt_test(AcceleratedRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccRDA')
 opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
 opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaGrad')

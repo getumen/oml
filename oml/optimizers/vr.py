@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from __future__ import generators
 from __future__ import division
 
-from oml.functions import Differentiable
+from oml.functions import Differentiable, StrongConvexity
 from oml.optimizers.optimizer import Optimizer
 from oml.models.components import State
 from oml.models.components import ProximalOracle
@@ -43,12 +43,12 @@ class Svrg(Optimizer):
             self.model.loss(x, t)
             self.model.compute_grad()
 
-        if isinstance(self.model, Differentiable):
+        if isinstance(self.model, Differentiable) and isinstance(self.model, StrongConvexity):
             self.hyper_parameter['step_size'] = 1 / (3 * self.model.gamma * iter_num)
 
         for i, layer in enumerate(self.model.layers):
             if isinstance(layer, State):
-                for key in layer.param.keys():
+                for key in layer.update_set:
                     self.state['total_grad'][str(i) + key] = layer.param[key].grad / iter_num
                     self.state['last_epoch_param'][str(i) + key] = layer.param[key].param
         self.model.clear_grad()
@@ -60,7 +60,7 @@ class Svrg(Optimizer):
         # cal last epoch grad
         for i, layer in enumerate(self.model.layers):
             if isinstance(layer, State):
-                for key in layer.param.keys():
+                for key in layer.update_set:
                     self.state['last_iter_param'][str(i) + key] = layer.param[key].param
                     layer.param[key].param = self.state['last_epoch_param'][str(i) + key]
         self.model.loss(x, t)

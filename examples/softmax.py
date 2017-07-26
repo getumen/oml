@@ -1,27 +1,27 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import generators
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import generators
-from __future__ import division
 
-import numpy as np
 import os
 
+import numpy as np
+from matplotlib import pyplot as plt
+from sklearn.datasets import fetch_mldata
 from sklearn.preprocessing import maxabs_scale
+
+from oml.datasouces.iterator import NumpyIterator
 from oml.models.glm import SoftmaxRegression
-from oml.models.regulizers import L2Sq, L1
+from oml.models.regulizers import L1
 from oml.optimizers.adagrad import AdaRDA, AdaGrad
 from oml.optimizers.adam import AdMax, Adam
-from oml.optimizers.rda import Rda, AcceleratedRDA
 from oml.optimizers.fobos import Fobos
-from oml.optimizers.vr import Svrg
 from oml.optimizers.freerex import FreeRex
+from oml.optimizers.nesterov import AccSGD
+from oml.optimizers.rda import Rda, AcceleratedRDA
 from oml.optimizers.smidas import Smidas
-from oml.datasouces.iterator import NumpyIterator
-
-from sklearn.datasets import fetch_mldata
-
-from matplotlib import pyplot as plt
+from oml.optimizers.vr import Svrg
 
 mnist = fetch_mldata('MNIST original')
 
@@ -40,7 +40,6 @@ test_index = list(set(range(data.shape[0])).difference(set(train_index)))
 
 train_data = data[train_index, :]
 test_data = data[test_index, :]
-
 
 train_iter = NumpyIterator(train_data, batch_size=100)
 test_iter = NumpyIterator(test_data, batch_size=100)
@@ -65,6 +64,9 @@ def opt_test(optimizer, label):
         'rmse': optimizer.evaluation
     }
 
+
+opt_test(AccSGD(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AccSGD')
+opt_test(AccSGD(SoftmaxRegression(feature, target, reg=L1(0.0001)), online=True), 'OnlineAccSGD')
 opt_test(AdMax(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'AdMax')
 opt_test(Adam(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'Adam')
 opt_test(FreeRex(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'FreeRex')
@@ -81,7 +83,8 @@ def plot():
     for i, title in enumerate(['loss', 'rmse']):
         plt.subplot(1, 2, i + 1)
         plt.title(title)
-        for method in ['AdaGrad', 'FreeRex', 'SVRG', 'Fobos', 'Adam', 'AdMax', 'RDA', 'AdaRDA', 'AccRDA', 'Smidas']:
+        for method in ['AdaGrad', 'FreeRex', 'SVRG', 'Fobos', 'Adam', 'AdMax', 'RDA', 'AdaRDA', 'AccRDA', 'Smidas',
+                       'AccSGD', 'OnlineAccSGD']:
             r = np.loadtxt('./{}/{}_{}.csv'.format(out, method, title))
             r = r[::max(len(r) // 100, 1)]
             plt.plot(list(range(len(r))), r, label=method)
