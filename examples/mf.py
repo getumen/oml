@@ -28,7 +28,7 @@ test_iter = NumpyIterator(data[data.shape[0] // 5 * 4:], batch_size=1000)
 
 results = {}
 
-out = 'fm)out'
+out = 'fm_out'
 
 
 def opt_test(optimizer, label):
