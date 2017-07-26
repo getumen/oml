@@ -11,10 +11,12 @@ from sklearn.preprocessing import maxabs_scale
 from oml.models.glm import LinearRegression
 from oml.models.regulizers import L1, L2Sq
 from oml.optimizers.fobos import Fobos
-from oml.optimizers.adagrad import AdaGrad, PrimalDualAdaGrad
+from oml.optimizers.adagrad import AdaGrad, AdaRDA
 from oml.optimizers.rda import Rda, AcceleratedRDA
 from oml.optimizers.vr import Svrg
 from oml.optimizers.freerex import FreeRex
+from oml.optimizers.adam import Adam, AdMax
+from oml.optimizers.smidas import Smidas
 from oml.datasouces.iterator import NumpyIterator
 
 from matplotlib import pyplot as plt
@@ -50,12 +52,14 @@ def opt_test(optimizer, label):
     }
 
 opt_test(AcceleratedRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccRDA')
-# opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
-# opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaGrad')
-opt_test(PrimalDualAdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
-# opt_test(Fobos(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FOBOS')
+opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
+opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaGrad')
+opt_test(AdaRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
+opt_test(Fobos(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FOBOS')
 opt_test(Rda(LinearRegression(feature, target, reg=L2Sq(0.01))), 'RDA')
-# opt_test(Svrg(LinearRegression(feature, target, reg=L2Sq(0.01))), 'SVRG')
+opt_test(Svrg(LinearRegression(feature, target, reg=L2Sq(0.01))), 'SVRG')
+opt_test(AdMax(LinearRegression(feature, target, reg=L2Sq(0.01))), 'Adam')
+opt_test(Adam(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdMax')
 
 
 def plot(result):

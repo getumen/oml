@@ -55,7 +55,7 @@ class AdaGrad(optimizer.Optimizer):
             )
 
 
-class PrimalDualAdaGrad(optimizer.Optimizer):
+class AdaRDA(optimizer.Optimizer):
     """
     Duchi, John, Elad Hazan, and Yoram Singer.
     "Adaptive subgradient methods for online learning and stochastic optimization."

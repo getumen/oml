@@ -6,6 +6,9 @@ from __future__ import division
 
 from oml.optimizers.optimizer import Optimizer
 from oml.models.components import ProximalOracle
+from oml.functions import StrongConvexity
+
+import warnings
 
 import numpy as np
 
@@ -17,13 +20,15 @@ class FreeRex(Optimizer):
     COLT2017
     """
 
-    def __init__(self, model, step_size=0.01, t=0, k=1):
+    def __init__(self, model, t=0, k=1):
         Optimizer.__init__(self, model, t=t)
         self.state['one_of_squared_eta'] = {}
         self.state['L_max'] = {}
         self.state['cumulative_grad'] = {}
         self.state['a'] = {}
         self.hyper_parameter['k'] = k
+        if not isinstance(model, StrongConvexity):
+            warnings.warn('FREEREX is not appropriate for non convex')
 
     def rule(self, i, key, layer):
         grad = layer.param[key].grad
