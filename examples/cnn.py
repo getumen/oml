@@ -44,14 +44,14 @@ test_data = data[test_index, :]
 
 architecture = [
     {'layer': 'conv', 'kernel_num': 16, 'kernel_size': 3, 'stride': 1, 'padding': 1},
+    {'layer': 'batch_normalization'},
     {'layer': 'activation', 'instance': Relu()},
-    {'batch_normalization'},
     {'layer': 'pooling', 'pool_size': 2, 'stride': 2, 'padding': 0},
-    {'layer': 'affine', 'unit_num': 150, 'reg': L1(param=0.001/1000)},
+    {'layer': 'affine', 'unit_num': 50, 'reg': L2Sq(param=0.001)},
 ]
 
 
-out = 'cnn_out_l1'
+out = 'cnn_out_collaborative'
 
 
 def opt_test(optimizer, label):
@@ -61,7 +61,7 @@ def opt_test(optimizer, label):
         pass
     if not os.path.isfile('./{}/{}_{}.csv'.format(out, label, 'loss')):
         print(label)
-        optimizer.optimize(train_iter, test_iter, show_evaluation=True, show_loss=True, epoch=3)
+        optimizer.optimize(train_iter, test_iter, show_evaluation=True, show_loss=True)
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'loss'), optimizer.loss, delimiter=',')
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'accuracy'), optimizer.evaluation, delimiter=',')
 
@@ -69,13 +69,13 @@ def opt_test(optimizer, label):
 train_iter = NumpyIterator(train_data, batch_size=100)
 test_iter = NumpyIterator(test_data, batch_size=100)
 
-opt_test(AdaGrad(NN(architecture=architecture)), 'AdaGrad')
-opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
-opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
-opt_test(AccSGD(NN(architecture=architecture)), 'AccSGD')
-opt_test(AccSGD(NN(architecture=architecture), online=True), 'OnlineAccSGD')
-opt_test(AccSGD(NN(architecture=architecture)), 'Adam')
-opt_test(AccSGD(NN(architecture=architecture)), 'AdaMax')
+opt_test(AdaGrad(NN(architecture=architecture), step_size=0.001), 'AdaGrad')
+# opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
+# opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
+# opt_test(AccSGD(NN(architecture=architecture)), 'AccSGD')
+# opt_test(AccSGD(NN(architecture=architecture), online=True), 'OnlineAccSGD')
+# opt_test(AccSGD(NN(architecture=architecture)), 'Adam')
+# opt_test(AccSGD(NN(architecture=architecture)), 'AdaMax')
 
 
 def plot():

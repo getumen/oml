@@ -17,6 +17,7 @@ from oml.optimizers.fobos import Fobos
 from oml.optimizers.freerex import FreeRex
 from oml.optimizers.vr import Svrg
 from oml.optimizers.adam import Adam, AdMax
+from oml.optimizers.nesterov import AccSGD
 
 data = np.loadtxt('./ml-latest-small/ratings.csv', skiprows=1, delimiter=',')
 

@@ -99,77 +99,139 @@ class FactorizationMachine(Layer, State):
         self.input_size = input_size
         self.output_size = output_size
         self.x = None
+        self.x_original_shape = None
 
-    def forward(self, x, *args, **kwargs):
+    def forward(self, x: np.ndarray, *args, **kwargs):
         x = x.astype(int)
         res = np.zeros((x.shape[0], self.output_size))
         self.x = x
-        for n in range(x.shape[0]):
-            res[n] += self.param['b'].param
-            vx = np.zeros((self.output_size, self.rank))
-            for i in range(x.shape[1]):
+        self.x_original_shape = x.shape
 
-                channel = x[n, i, 0]
-                index = x[n, i, 1]
-                value = x[n, i, 2]
-                w_key = 'w-{}-{}'.format(channel, index)
-                v_key = 'v-{}-{}'.format(channel, index)
+        if x.ndim == 3:
+            self.update_set.add('b')
+            for n in range(x.shape[0]):
+                res[n] += self.param['b'].param
+                vx = np.zeros((self.output_size, self.rank))
+                for i in range(x.shape[1]):
 
-                if w_key not in self.param:
-                    self.param[w_key] = \
-                        Param(param=np.random.randn(self.output_size) * 1e-8, reg=self.input_bias_reg)
+                    channel = x[n, i, 0]
+                    index = x[n, i, 1]
+                    value = x[n, i, 2]
+                    w_key = 'w-{}-{}'.format(channel, index)
+                    v_key = 'v-{}-{}'.format(channel, index)
 
-                w_i = self.param[w_key].param
+                    if w_key not in self.param:
+                        self.param[w_key] = \
+                            Param(param=np.random.randn(self.output_size) * 1e-8, reg=self.input_bias_reg)
 
-                if v_key not in self.param:
-                    self.param[v_key] = \
-                        Param(param=np.random.randn(self.output_size, self.rank) * 1e-8, reg=self.variance_reg)
-                v_i = self.param[v_key].param
-                vx += v_i * value
-                res[n] -= np.linalg.norm(v_i * value, axis=1) ** 2 / 2
-                res[n] += w_i * value
-            res[n] += np.linalg.norm(vx, axis=1) ** 2 / 2
-        return res
+                    w_i = self.param[w_key].param
+
+                    if v_key not in self.param:
+                        self.param[v_key] = \
+                            Param(param=np.random.randn(self.output_size, self.rank) * 1e-8, reg=self.variance_reg)
+                    v_i = self.param[v_key].param
+                    vx += v_i * value
+                    res[n] -= np.linalg.norm(v_i * value, axis=1) ** 2 / 2
+                    res[n] += w_i * value
+                res[n] += np.linalg.norm(vx, axis=1) ** 2 / 2
+            return res
+
+        if self.x.ndim == 4:
+            self.x = self.x.reshape(x.shape[0], -1)
+        if self.x.ndim != 2:
+            raise ValueError("Invalid input", self.x)
+        self.update_set.add('v')
+        if 'v' not in self.param:
+            self.param['v'] = Param(param=np.random.rand(self.output_size, self.rank, self.input_size) * 1e-8)
+        self.update_set.add('w')
+        if 'w' not in self.param:
+            self.param['w'] = Param(param=np.random.rand(self.output_size, self.input_size) * 1e-8)
+        self.update_set.add('b')
+        if 'b' not in self.param:
+            self.param['b'] = Param(param=np.random.rand(self.output_size) * 1e-8)
+
+        return np.sum(
+            np.sum(
+                self.param['v'].param.reshape(1, self.output_size, self.rank, self.input_size)
+                * self.x.reshape(self.x.shape[0], 1, 1, self.input_size),
+                axis=3
+            ) ** 2,
+            axis=2
+        ) / 2 - np.sum(
+            (
+                self.param['v'].param.reshape(1, self.output_size, self.rank, self.input_size)
+                * self.x.reshape(self.x.shape[0], 1, 1, self.input_size)
+            ) ** 2,
+            axis=(2, 3)
+        ) / 2 + np.dot(self.x, self.param['w'].param.T) + self.param['b'].param
 
     def backward(self, dout):
-        self.update_set.clear()
-        self.update_set.add('b')
 
-        self.param['b'].grad += np.sum(dout, axis=0) * 1
+        if len(self.x_original_shape) == 3:
+            self.update_set.clear()
 
-        vx = np.zeros((self.output_size, self.rank))
+            self.param['b'].grad += np.sum(dout, axis=0) * 1
 
-        dx = np.zeros_like(self.x)
+            vx = np.zeros((self.output_size, self.rank))
 
-        for n in range(self.x.shape[0]):
-            for i in range(self.x.shape[1]):
+            dx = np.zeros_like(self.x)
 
-                channel = self.x[n, i, 0]
-                index = self.x[n, i, 1]
-                value = self.x[n, i, 2]
-                v_key = 'v-{}-{}'.format(channel, index)
-                w_key = 'w-{}-{}'.format(channel, index)
+            for n in range(self.x.shape[0]):
+                for i in range(self.x.shape[1]):
 
-                self.update_set.add(v_key)
-                self.update_set.add(w_key)
+                    channel = self.x[n, i, 0]
+                    index = self.x[n, i, 1]
+                    value = self.x[n, i, 2]
+                    v_key = 'v-{}-{}'.format(channel, index)
+                    w_key = 'w-{}-{}'.format(channel, index)
 
-                vx += self.param[v_key].param * value
+                    vx += self.param[v_key].param * value
 
-                dx[n, i, 2] = self.param[w_key].param
-                for j in range(self.x.shape[1]):
-                    dx[n, i, 2] += self.param[v_key].param.dot(self.param[v_key].param.T) * self.param[w_key].param
+                    dx[n, i, 2] = self.param[w_key].param
+                    for j in range(self.x.shape[1]):
+                        dx[n, i, 2] += self.param[v_key].param.dot(self.param[v_key].param.T) * self.param[w_key].param
 
-        for n in range(self.x.shape[0]):
-            for i in range(self.x.shape[1]):
-                channel = self.x[n, i, 0]
-                index = self.x[n, i, 1]
-                value = self.x[n, i, 2]
-                v_key = 'v-{}-{}'.format(channel, index)
-                w_key = 'w-{}-{}'.format(channel, index)
-                self.param[w_key].grad += dout[n, :] * self.x[n, i, 2]
-                self.param[v_key].grad += value * dout[n, :] * (vx - value * self.param[v_key].param)
+            for n in range(self.x.shape[0]):
+                for i in range(self.x.shape[1]):
+                    channel = self.x[n, i, 0]
+                    index = self.x[n, i, 1]
+                    value = self.x[n, i, 2]
+                    v_key = 'v-{}-{}'.format(channel, index)
+                    w_key = 'w-{}-{}'.format(channel, index)
+                    self.param[w_key].grad += dout[n, :] * self.x[n, i, 2]
+                    self.param[v_key].grad += value * dout[n, :] * (vx - value * self.param[v_key].param)
 
-        return dx
+            return dx
+
+        self.param['b'].grad += np.sum(dout, axis=0).T
+        self.param['w'].grad += np.dot(self.x.T, dout).T
+        self.param['v'].grad += np.sum(
+            (
+                np.sum(
+                    self.param['v'].param.reshape(1, self.output_size, self.rank, self.input_size)
+                    * self.x.reshape(self.x.shape[0], 1, 1, self.input_size),
+                    axis=3
+                ).reshape(
+                    self.x.shape[0], self.output_size, self.rank, 1
+                ) * self.x.reshape(
+                    self.x.shape[0], 1, 1, self.input_size
+                ) - self.param['v'].param.reshape(1, self.output_size, self.rank, self.input_size)
+                * self.x.reshape(self.x.shape[0], 1, 1, self.input_size) ** 2
+            ) * dout.reshape(self.x.shape[0], -1, 1, 1),
+            axis=0
+        )
+
+        return np.sum(
+            self.param['v'].param.reshape(
+                1, self.output_size, self.rank, self.input_size
+            ) ** 2 * self.x.reshape(
+                self.x.shape[0], 1, 1, self.input_size
+            ) / 2
+            + self.param['w'].param.reshape(
+                1, self.output_size, 1, self.input_size
+            ),
+            axis=(1, 2)
+        ).reshape(*self.x_original_shape)
 
 
 class Sigmoid(Layer):
