@@ -40,7 +40,7 @@ def opt_test(optimizer, label):
         pass
     if not os.path.isfile('./{}/{}_{}.csv'.format(out, label, 'loss')):
         print(label)
-        optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=5)
+        optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=5, show_loss=True)
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'loss'), optimizer.loss, delimiter=',')
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'rmse'), optimizer.evaluation, delimiter=',')
 
@@ -50,7 +50,7 @@ def opt_test(optimizer, label):
     }
 
 
-opt_test(Fobos(PoissonFM(input_bias_reg=L1(), variance_reg=L2Sq())), 'Fobos')
+opt_test(Fobos(PoissonFM(input_bias_reg=L1(), variance_reg=L2Sq()), step_size=0.1), 'Fobos')
 opt_test(AdaGrad(PoissonFM(input_bias_reg=L1(), variance_reg=L2Sq())), 'AdaGrad')
 opt_test(Adam(PoissonFM(input_bias_reg=L1(), variance_reg=L2Sq())), 'Adam')
 opt_test(AdMax(PoissonFM(input_bias_reg=L1(), variance_reg=L2Sq())), 'AdMax')

@@ -50,9 +50,8 @@ def opt_test(optimizer, label):
     }
 
 
-opt_test(AdaGrad(FM(input_bias_reg=L1(), variance_reg=L2Sq()), step_size=0.1), 'AdaGrad')
+opt_test(AdaGrad(FM(input_bias_reg=L1(), variance_reg=L2Sq())), 'AdaGrad')
 opt_test(Fobos(FM(input_bias_reg=L1(), variance_reg=L2Sq())), 'Fobos')
-opt_test(Svrg(FM(input_bias_reg=L1(), variance_reg=L2Sq())), 'SVRG')
 opt_test(Adam(FM(input_bias_reg=L1(), variance_reg=L2Sq())), 'Adam')
 opt_test(AdMax(FM(input_bias_reg=L1(), variance_reg=L2Sq())), 'AdMax')
 
