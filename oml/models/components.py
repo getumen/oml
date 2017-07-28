@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import numpy as np
 from scipy.sparse import csr_matrix
+from scipy.special import factorial
 
 from oml import functions as F
 from oml.models.regulizers import Nothing
@@ -108,7 +109,6 @@ class FactorizationMachine(Layer, State):
         self.x_original_shape = x.shape
 
         if x.ndim == 3:
-            self.update_set.add('b')
             for n in range(x.shape[0]):
                 res[n] += self.param['b'].param
                 vx = np.zeros((self.output_size, self.rank))
@@ -169,6 +169,7 @@ class FactorizationMachine(Layer, State):
 
         if len(self.x_original_shape) == 3:
             self.update_set.clear()
+            self.update_set.add('b')
 
             self.param['b'].grad += np.sum(dout, axis=0) * 1
 
@@ -184,6 +185,8 @@ class FactorizationMachine(Layer, State):
                     value = self.x[n, i, 2]
                     v_key = 'v-{}-{}'.format(channel, index)
                     w_key = 'w-{}-{}'.format(channel, index)
+                    self.update_set.add(v_key)
+                    self.update_set.add(w_key)
 
                     vx += self.param[v_key].param * value
 
@@ -321,7 +324,7 @@ class Poisson(LastLayer):
     def forward(self, x, t, *args, **kwargs):
         self.y = self.predict(x, *args, **kwargs)
         self.t = t.reshape(self.y.shape)
-        return np.sum(self.y - np.multiply(t, self.x))
+        return np.sum(self.y - np.multiply(t, self.x)) + np.sum(np.log(factorial(self.y)))
 
     def backward(self):
         batch_size = self.x.shape[0]

@@ -61,7 +61,7 @@ def opt_test(optimizer, label):
 
     results[label] = {
         'loss': optimizer.loss,
-        'rmse': optimizer.evaluation
+        'accuracy': optimizer.evaluation
     }
 
 
@@ -80,7 +80,7 @@ opt_test(Smidas(SoftmaxRegression(feature, target, reg=L1(0.0001))), 'Smidas')
 
 
 def plot():
-    for i, title in enumerate(['loss', 'rmse']):
+    for i, title in enumerate(['loss', 'accuracy']):
         plt.subplot(1, 2, i + 1)
         plt.title(title)
         for method in ['AdaGrad', 'FreeRex', 'SVRG', 'Fobos', 'Adam', 'AdMax', 'RDA', 'AdaRDA', 'AccRDA', 'Smidas',
