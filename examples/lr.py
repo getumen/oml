@@ -19,6 +19,8 @@ from oml.optimizers.adam import Adam, AdMax
 from oml.optimizers.nesterov import AccSGD
 from oml.datasouces.iterator import NumpyIterator
 
+from oml.serializers.serializer import BaseSerializer
+
 from matplotlib import pyplot as plt
 
 data = load_boston()
@@ -41,10 +43,12 @@ test_iter = NumpyIterator(test_data)
 
 results = {}
 
+serializer = BaseSerializer()
+
 
 def opt_test(optimizer, label):
     print(label)
-    optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=1000)
+    optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=100)
 
     results[label] = {
         'loss': optimizer.loss,
