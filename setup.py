@@ -2,6 +2,9 @@ from setuptools import setup, find_packages
 
 REQUIREMENTS = [
     'numpy >= 1.13',
+    'scipy >= 0.19',
+    'six >= 1.10',
+    'scikit-learn >= 0.18',
 ]
 
 setup(
@@ -9,7 +12,7 @@ setup(
     version='0.1.0',
     description='Online Machine Learning',
     author='@getumen',
-    author_email='yoshihiro[AT]mdl.cs.tsukuba.ac.jp',
+    author_email='n.yoshihiro.jp@gmail.com',
     url='https://github.com/getumen/oml',
     packages=find_packages(exclude=('tests', 'examples')),
     install_requires=REQUIREMENTS,
