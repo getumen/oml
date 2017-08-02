@@ -40,6 +40,10 @@ class Optimizer:
 
         for current_epoch in range(epoch):
 
+            self.evaluation.append(self.model.evaluate_model(test_iter, show=show_evaluation))
+            train_iter.initialize()
+            test_iter.initialize()
+
             self.pre_epoch(train_iter, test_iter)
 
             for page in train_iter.pages:
@@ -65,9 +69,6 @@ class Optimizer:
                     break
 
                 self.model.clear_grad()
-            self.evaluation.append(self.model.evaluate_model(test_iter, show=show_evaluation))
-            train_iter.initialize()
-            test_iter.initialize()
 
         print('=== Final Evaluation ===')
         self.model.evaluate_model(test_iter)

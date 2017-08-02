@@ -19,8 +19,6 @@ from oml.optimizers.adam import Adam, AdMax
 from oml.optimizers.nesterov import AccSGD
 from oml.datasouces.iterator import NumpyIterator
 
-from oml.serializers.serializer import BaseSerializer
-
 from matplotlib import pyplot as plt
 
 data = load_boston()
@@ -43,8 +41,6 @@ test_iter = NumpyIterator(test_data)
 
 results = {}
 
-serializer = BaseSerializer()
-
 
 def opt_test(optimizer, label):
     print(label)
@@ -55,17 +51,18 @@ def opt_test(optimizer, label):
         'rmse': optimizer.evaluation
     }
 
-opt_test(AccSGD(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccSGD')
-opt_test(AccSGD(LinearRegression(feature, target, reg=L2Sq(0.01)), online=True), 'OnlineAccSGD')
-opt_test(AcceleratedRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccRDA')
+# opt_test(AccSGD(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccSGD')
+# opt_test(AccSGD(LinearRegression(feature, target, reg=L2Sq(0.01)), online=True), 'OnlineAccSGD')
+# opt_test(AcceleratedRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccRDA')
 opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
-opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaGrad')
-opt_test(AdaRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
-opt_test(Fobos(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FOBOS')
-opt_test(Rda(LinearRegression(feature, target, reg=L2Sq(0.01))), 'RDA')
-opt_test(Svrg(LinearRegression(feature, target, reg=L2Sq(0.01))), 'SVRG')
-opt_test(AdMax(LinearRegression(feature, target, reg=L2Sq(0.01))), 'Adam')
-opt_test(Adam(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdMax')
+opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01)), step_size=100), 'AdaGrad')
+opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01)), exploit_sc=False, step_size=10), 'AdaGrad not use SC')
+# opt_test(AdaRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
+# opt_test(Fobos(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FOBOS')
+# opt_test(Rda(LinearRegression(feature, target, reg=L2Sq(0.01))), 'RDA')
+# opt_test(Svrg(LinearRegression(feature, target, reg=L2Sq(0.01))), 'SVRG')
+# opt_test(AdMax(LinearRegression(feature, target, reg=L2Sq(0.01))), 'Adam')
+# opt_test(Adam(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdMax')
 
 
 def plot(result):
