@@ -16,6 +16,7 @@ from oml.optimizers.rda import Rda, AcceleratedRDA
 from oml.optimizers.vr import Svrg
 from oml.optimizers.freerex import FreeRex
 from oml.optimizers.adam import Adam, AdMax
+from oml.optimizers.rms_prop import RMSProp
 from oml.optimizers.nesterov import AccSGD
 from oml.datasouces.iterator import NumpyIterator
 
@@ -44,7 +45,7 @@ results = {}
 
 def opt_test(optimizer, label):
     print(label)
-    optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=100)
+    optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=50)
 
     results[label] = {
         'loss': optimizer.loss,
@@ -55,8 +56,10 @@ def opt_test(optimizer, label):
 # opt_test(AccSGD(LinearRegression(feature, target, reg=L2Sq(0.01)), online=True), 'OnlineAccSGD')
 # opt_test(AcceleratedRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AccRDA')
 opt_test(FreeRex(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FreeRex')
-opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01)), step_size=100), 'AdaGrad')
-opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01)), exploit_sc=False, step_size=10), 'AdaGrad not use SC')
+opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01)), step_size=1), 'AdaGrad use SC')
+opt_test(AdaGrad(LinearRegression(feature, target, reg=L2Sq(0.01)), step_size=1, exploit_sc=False), 'AdaGrad')
+opt_test(RMSProp(LinearRegression(feature, target, reg=L2Sq(0.01)), step_size=1), 'RMSProp use SC')
+opt_test(RMSProp(LinearRegression(feature, target, reg=L2Sq(0.01)), step_size=1, exploit_sc=False), 'RMSProp')
 # opt_test(AdaRDA(LinearRegression(feature, target, reg=L2Sq(0.01))), 'AdaRDA')
 # opt_test(Fobos(LinearRegression(feature, target, reg=L2Sq(0.01))), 'FOBOS')
 # opt_test(Rda(LinearRegression(feature, target, reg=L2Sq(0.01))), 'RDA')
