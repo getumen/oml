@@ -9,6 +9,8 @@ from oml.optimizers.optimizer import Optimizer
 from oml.models.components import State
 from oml.models.components import ProximalOracle
 
+import numpy as np
+
 
 class Svrg(Optimizer):
     """
@@ -38,7 +40,8 @@ class Svrg(Optimizer):
         loss = None
 
         for page in train_iter.pages:
-            x, t = self.page2data(page)
+            x, t = np.asarray, zip(*list(page))
+
             iter_num += 1
             self.model.loss(x, t)
             self.model.compute_grad()

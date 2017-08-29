@@ -53,11 +53,11 @@ def opt_test(optimizer, label):
         os.mkdir(out)
     except FileExistsError:
         pass
-    if not os.path.isfile('./{}/{}_{}.csv'.format(out, label, 'loss')):
+    if not os.path.isfile('./{}/{}_{}.csv'.format(out, label, 'accuracy')):
         print(label)
         optimizer.optimize(train_iter, test_iter, show_evaluation=True)
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'loss'), optimizer.loss, delimiter=',')
-        np.savetxt('./{}/{}_{}.csv'.format(out, label, 'rmse'), optimizer.evaluation, delimiter=',')
+        np.savetxt('./{}/{}_{}.csv'.format(out, label, 'accuracy'), optimizer.evaluation, delimiter=',')
 
     results[label] = {
         'loss': optimizer.loss,
@@ -83,8 +83,7 @@ def plot():
     for i, title in enumerate(['loss', 'accuracy']):
         plt.subplot(1, 2, i + 1)
         plt.title(title)
-        for method in ['AdaGrad', 'FreeRex', 'SVRG', 'Fobos', 'Adam', 'AdMax', 'RDA', 'AdaRDA', 'AccRDA', 'Smidas',
-                       'AccSGD', 'OnlineAccSGD']:
+        for method in results.keys():
             r = np.loadtxt('./{}/{}_{}.csv'.format(out, method, title))
             r = r[::max(len(r) // 100, 1)]
             plt.plot(list(range(len(r))), r, label=method)

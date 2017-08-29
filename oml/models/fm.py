@@ -12,90 +12,70 @@ from oml.models.components import State
 
 import numpy as np
 
+from typing import List, Dict
 
-class FM(Regression, Differentiable):
+
+class BaseFM(Regression):
+
+    def __init__(self, layer, last_layer):
+        Regression.__init__(self, layer, last_layer)
+
+    def evaluate_model(self, test_iter, show=False):
+        error = 0
+        sample_num = 0
+        for page in test_iter.pages:
+            x, t = zip(*list(page))
+            t = np.asarray(t)
+            y = self.predict(x, train_flg=False).reshape(len(t))
+            error += np.linalg.norm(t - y) ** 2
+            sample_num += len(x)
+        if show:
+            print('=== RMSE: {}'.format(np.sqrt(error / sample_num)))
+        return np.sqrt(error / sample_num)
+
+    def predict(self, x: List[Dict[str, float]], *args, **kwargs):
+
+        for layer in self.layers:
+            x = layer.forward(x, *args, **kwargs)
+        return self.last_layer.predict(x, *args, **kwargs)
+
+    def loss(self, x: List[Dict[str, float]], t, *args, **kwargs):
+        reg = 0
+
+        t = np.asarray(t)
+
+        for layer in self.layers:
+            x = layer.forward(x, *args, **kwargs)
+            if isinstance(layer, State):
+                for key in layer.param.keys():
+                    reg += layer.param[key].reg.apply(layer.param[key].param)
+        return self.last_layer.forward(x, t, *args, **kwargs) + reg
+
+
+class FM(BaseFM, Differentiable):
     def __init__(
             self,
-            input_bias_reg=Nothing(),
-            variance_reg=Nothing()
+            rank_list=(1, 5),
+            reg=Nothing()
     ):
-        Regression.__init__(
+        BaseFM.__init__(
             self,
-            [FactorizationMachine(input_bias_reg=input_bias_reg, variance_reg=variance_reg)],
+            [FactorizationMachine(rank_list=rank_list, reg=reg)],
             Gauss(),
         )
         Differentiable.__init__(self, gamma=1)
 
-    def predict(self, x: np.ndarray, *args, **kwargs):
-        x_data = np.zeros(x.shape + (3,))
 
-        for i in range(x.shape[0]):
-            for j in range(2):
-                x_data[i, j, 0] = j
-                x_data[i, j, 1] = x[i, j]
-                x_data[i, j, 2] = 1
-
-        for layer in self.layers:
-            x = layer.forward(x_data, *args, **kwargs)
-        return self.last_layer.predict(x, *args, **kwargs)
-
-    def loss(self, x: np.ndarray, t: np.ndarray, *args, **kwargs):
-        reg = 0
-        x_data = np.zeros(x.shape + (3,))
-
-        for i in range(x.shape[0]):
-            for j in range(2):
-                x_data[i, j, 0] = j
-                x_data[i, j, 1] = x[i, j]
-                x_data[i, j, 2] = 1
-
-        for layer in self.layers:
-            x = layer.forward(x_data, *args, **kwargs)
-            if isinstance(layer, State):
-                for key in layer.param.keys():
-                    reg += layer.param[key].reg.apply(layer.param[key].param)
-        return self.last_layer.forward(x, t, *args, **kwargs) + reg
-
-
-class PoissonFM(Regression, Differentiable):
+class PoissonFM(BaseFM, Differentiable):
     def __init__(
             self,
-            input_bias_reg=Nothing(),
-            variance_reg=Nothing()
+            rank_list=(1, 5),
+            reg=Nothing()
     ):
-        Regression.__init__(
+        BaseFM.__init__(
             self,
-            [FactorizationMachine(input_bias_reg=input_bias_reg, variance_reg=variance_reg)],
+            [FactorizationMachine(reg=reg, rank_list=rank_list)],
             Poisson(),
         )
         Differentiable.__init__(self, gamma=1)
 
-    def predict(self, x: np.ndarray, *args, **kwargs):
-        x_data = np.zeros(x.shape + (3,))
-
-        for i in range(x.shape[0]):
-            for j in range(2):
-                x_data[i, j, 0] = j
-                x_data[i, j, 1] = x[i, j]
-                x_data[i, j, 2] = 1
-
-        for layer in self.layers:
-            x = layer.forward(x_data, *args, **kwargs)
-        return self.last_layer.predict(x, *args, **kwargs)
-
-    def loss(self, x: np.ndarray, t: np.ndarray, *args, **kwargs):
-        reg = 0
-        x_data = np.zeros(x.shape + (3,))
-
-        for i in range(x.shape[0]):
-            for j in range(2):
-                x_data[i, j, 0] = j
-                x_data[i, j, 1] = x[i, j]
-                x_data[i, j, 2] = 1
-
-        for layer in self.layers:
-            x = layer.forward(x_data, *args, **kwargs)
-            if isinstance(layer, State):
-                for key in layer.param.keys():
-                    reg += layer.param[key].reg.apply(layer.param[key].param)
-        return self.last_layer.forward(x, t, *args, **kwargs) + reg

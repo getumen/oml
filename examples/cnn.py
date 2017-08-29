@@ -47,11 +47,13 @@ architecture = [
     {'layer': 'batch_normalization'},
     {'layer': 'activation', 'instance': Relu()},
     {'layer': 'pooling', 'pool_size': 2, 'stride': 2, 'padding': 0},
-    {'layer': 'affine', 'unit_num': 50, 'reg': L2Sq(param=0.001)},
+    {'layer': 'affine', 'unit_num': 50},
 ]
 
 
-out = 'cnn_out_collaborative'
+out = 'cnn_out'
+
+results = {}
 
 
 def opt_test(optimizer, label):
@@ -59,23 +61,25 @@ def opt_test(optimizer, label):
         os.mkdir(out)
     except FileExistsError:
         pass
-    if not os.path.isfile('./{}/{}_{}.csv'.format(out, label, 'loss')):
-        print(label)
+    if not os.path.isfile('./{}/{}_{}.csv'.format(out, label, 'accuracy')):
         optimizer.optimize(train_iter, test_iter, show_evaluation=True, show_loss=True)
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'loss'), optimizer.loss, delimiter=',')
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'accuracy'), optimizer.evaluation, delimiter=',')
-
+    results[label] = {
+        'loss': optimizer.loss,
+        'rmse': optimizer.evaluation
+    }
 
 train_iter = NumpyIterator(train_data, batch_size=100)
 test_iter = NumpyIterator(test_data, batch_size=100)
 
-opt_test(AdaGrad(NN(architecture=architecture), step_size=0.001), 'AdaGrad')
-# opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
-# opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
-# opt_test(AccSGD(NN(architecture=architecture)), 'AccSGD')
-# opt_test(AccSGD(NN(architecture=architecture), online=True), 'OnlineAccSGD')
-# opt_test(AccSGD(NN(architecture=architecture)), 'Adam')
-# opt_test(AccSGD(NN(architecture=architecture)), 'AdaMax')
+opt_test(AdaGrad(NN(architecture=architecture)), 'AdaGrad')
+opt_test(Fobos(NN(architecture=architecture)), 'FOBOS')
+opt_test(Svrg(NN(architecture=architecture)), 'SVRG')
+opt_test(AccSGD(NN(architecture=architecture)), 'AccSGD')
+opt_test(AccSGD(NN(architecture=architecture), online=True), 'OnlineAccSGD')
+opt_test(AccSGD(NN(architecture=architecture)), 'Adam')
+opt_test(AccSGD(NN(architecture=architecture)), 'AdaMax')
 
 
 def plot():
@@ -84,7 +88,7 @@ def plot():
         plt.title(title)
         if title == 'loss':
             plt.ylim([0, 10])
-        for method in ['AdaGrad', 'SVRG', 'FOBOS', 'AccSGD', 'OnlineAccSGD', 'Adam', 'AdaMax']:
+        for method in results.keys():
             r = np.loadtxt('./{}/{}_{}.csv'.format(out, method, title))
             r = r[::max(len(r) // 100, 1)]
             plt.plot(list(range(len(r))), r, label=method)

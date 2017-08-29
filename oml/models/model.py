@@ -14,12 +14,14 @@ class BaseModel:
         self.last_layer = last_layer
 
     def predict(self, x, *args, **kwargs):
+        x = np.asarray(x)
         for layer in self.layers:
             x = layer.forward(x, *args, **kwargs)
         return self.last_layer.predict(x, *args, **kwargs)
 
     def loss(self, x, t, *args, **kwargs):
         reg = 0
+        x, y = np.asarray(x), np.asarray(y)
         for layer in self.layers:
             x = layer.forward(x, *args, **kwargs)
             if isinstance(layer, State):
@@ -47,8 +49,7 @@ class Classifier(BaseModel):
         accuracy = 0
         sample_num = 0
         for page in test_iter.pages:
-            data = np.matrix(list(page))
-            x, t = data[:, :-1], data[:, -1]
+            x, t = zip(*list(page))
             t = np.asarray(t).reshape(t.size)
             y = self.predict(x, train_flg=False)
             y = np.argmax(y, axis=1).reshape(t.shape)
@@ -64,8 +65,9 @@ class Regression(BaseModel):
         error = 0
         sample_num = 0
         for page in test_iter.pages:
-            data = np.matrix(list(page))
-            x, t = data[:, :-1], data[:, -1]
+            x, t = zip(*list(page))
+            x = np.asarray(x)
+            t = np.asarray(t)
             y = self.predict(x, train_flg=False)
             error += np.linalg.norm(t - y) ** 2
             sample_num += x.shape[0]

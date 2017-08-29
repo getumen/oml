@@ -12,6 +12,10 @@ from oml.functions import StrongConvexity
 from oml.models.components import ProximalOracle
 from oml.optimizers import optimizer
 
+STEP_SIZE = 'step_size'
+
+CG = 'squared_cumulative_grad'
+
 
 class AdaGrad(optimizer.Optimizer):
     """
@@ -52,23 +56,23 @@ class AdaGrad(optimizer.Optimizer):
 
     def rule(self, i, key, layer):
         grad = layer.param[key].grad
-        self.state['squared_cumulative_grad'][str(i) + key] \
-            = self.state['squared_cumulative_grad'].get(str(i) + key, np.zeros_like(grad)) + np.multiply(grad, grad)
+        self.state[CG][str(i) + key] \
+            = self.state[CG].get(str(i) + key, np.zeros_like(grad)) + np.multiply(grad, grad)
 
-        if self.hyper_parameter['mu'] > 0 and self.hyper_parameter['exploit_sc']:
+        if 'mu' in self.hyper_parameter and self.hyper_parameter['mu'] > 0 and self.hyper_parameter['exploit_sc']:
             delta = self.hyper_parameter['xi2'] * np.exp(
-                -self.hyper_parameter['xi1'] * self.state['squared_cumulative_grad'][str(i) + key]
+                -self.hyper_parameter['xi1'] * self.state[CG][str(i) + key]
             )
-            a = delta + self.state['squared_cumulative_grad'][str(i) + key]
+            a = delta + self.state[CG][str(i) + key]
         else:
             delta = self.hyper_parameter['delta']
-            a = delta + np.sqrt(self.state['squared_cumulative_grad'][str(i) + key])
+            a = delta + np.sqrt(self.state[CG][str(i) + key])
 
-        layer.param[key].param -= self.hyper_parameter['step_size'] * grad / a
+        layer.param[key].param -= self.hyper_parameter[STEP_SIZE] * grad / a
 
         if isinstance(layer.param[key], ProximalOracle):
             layer.param[key].param = layer.param[key].reg.proximal(
-                layer.param[key].param, self.hyper_parameter['step_size'] / a
+                layer.param[key].param, self.hyper_parameter[STEP_SIZE] / a
             )
 
 

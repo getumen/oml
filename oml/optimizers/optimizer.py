@@ -25,18 +25,9 @@ class Optimizer:
         self.loss = []
         self.evaluation = []
 
-    def page2data(self, page):
-        data = np.matrix(list(page))
-        if self.num_of_target == 1:
-            x, t = data[:, :-self.num_of_target], np.squeeze(np.asarray(data[:, -self.num_of_target]))
-        else:
-            x, t = data[:, :-self.num_of_target], data[:, -self.num_of_target]
-        return x, t
-
     def optimize(self, train_iter, test_iter, epoch=20, max_iter=None, show_loss=False, show_evaluation=False):
 
         init_t = self.t
-        loss = None
 
         for current_epoch in range(epoch):
 
@@ -47,7 +38,7 @@ class Optimizer:
             self.pre_epoch(train_iter, test_iter)
 
             for page in train_iter.pages:
-                x, t = self.page2data(page)
+                x, t = zip(*list(page))
                 self.t += 1
 
                 self.pre_fb_op(x, t)

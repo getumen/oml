@@ -9,15 +9,13 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 
-from oml.datasouces.iterator import NumpyIterator
+from oml.datasouces.iterator import DictIterator
 from oml.models.fm import PoissonFM
-from oml.models.regulizers import L1, L2Sq
 from oml.optimizers.adagrad import AdaGrad
-from oml.optimizers.fobos import Fobos
-from oml.optimizers.freerex import FreeRex
-from oml.optimizers.vr import Svrg
 from oml.optimizers.adam import Adam, AdMax
-from oml.optimizers.nesterov import AccSGD
+from oml.optimizers.fobos import Fobos
+
+from oml.models.regulizers import L2Sq
 
 data = np.loadtxt('./ml-latest-small/ratings.csv', skiprows=1, delimiter=',')
 
@@ -25,8 +23,15 @@ np.random.shuffle(data)
 
 data = data[:, :3].astype(int)
 
-train_iter = NumpyIterator(data[:data.shape[0] // 5 * 4], batch_size=100)
-test_iter = NumpyIterator(data[data.shape[0] // 5 * 4:], batch_size=1000)
+x = []
+t = []
+
+for line in data:
+    x.append({'u_{}'.format(line[0]): 1, 'i_{}'.format(line[1]): 1})
+    t.append(line[2])
+
+train_iter = DictIterator(x=x[:data.shape[0] // 5 * 4], t=t[:data.shape[0] // 5 * 4], batch_size=100)
+test_iter = DictIterator(x=x[data.shape[0] // 5 * 4:], t=t[data.shape[0] // 5 * 4:], batch_size=1000)
 
 results = {}
 
@@ -40,7 +45,7 @@ def opt_test(optimizer, label):
         pass
     if not os.path.isfile('./{}/{}_{}.csv'.format(out, label, 'loss')):
         print(label)
-        optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=5, show_loss=True)
+        optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=5)
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'loss'), optimizer.loss, delimiter=',')
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'rmse'), optimizer.evaluation, delimiter=',')
 
@@ -50,17 +55,14 @@ def opt_test(optimizer, label):
     }
 
 
-opt_test(Fobos(PoissonFM(input_bias_reg=L1(), variance_reg=L2Sq()), step_size=0.1), 'Fobos')
-opt_test(AdaGrad(PoissonFM(input_bias_reg=L1(), variance_reg=L2Sq())), 'AdaGrad')
-opt_test(Adam(PoissonFM(input_bias_reg=L1(), variance_reg=L2Sq())), 'Adam')
-opt_test(AdMax(PoissonFM(input_bias_reg=L1(), variance_reg=L2Sq())), 'AdMax')
+opt_test(Fobos(PoissonFM(reg=L2Sq())), 'Fobos')
 
 
 def plot():
     for i, title in enumerate(['loss', 'rmse']):
         plt.subplot(1, 2, i + 1)
         plt.title(title)
-        for method in ['AdaGrad', 'Fobos', 'Adam', 'AdMax']:
+        for method in results.keys():
             r = np.loadtxt('./{}/{}_{}.csv'.format(out, method, title))
             r = r[::max(len(r) // 100, 1)]
             plt.plot(list(range(len(r))), r, label=method)

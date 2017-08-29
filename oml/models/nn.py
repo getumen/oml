@@ -88,20 +88,6 @@ class NN(Classifier, Differentiable):
                     layers.append(
                         Dropout(arch.get('dropout_ratio', 0.5))
                     )
-                elif arch['layer'] == 'collaborative':
-                    layers.append(
-                        FactorizationMachine(
-                            rank=arch.get('rank', 5),
-                            input_size=hidden_size,
-                            output_size=arch['unit_num'],
-                            input_bias_reg=arch.get('weight_reg', Nothing()),
-                            variance_reg=arch.get('collaborative_reg', Nothing())
-                        )
-                    )
-                    channel = 1
-                    height = 1
-                    width = arch['unit_num']
-                    hidden_size = channel * height * width
                 else:
                     raise NotImplementedError('not registered architecture!')
             else:
@@ -118,6 +104,7 @@ class NN(Classifier, Differentiable):
 
     def loss(self, x: np.ndarray, t: np.ndarray, *args, **kwargs):
         reg = 0
+        t = np.asarray(t)
         if t.ndim == 1:
             batch_size = t.size
         else:

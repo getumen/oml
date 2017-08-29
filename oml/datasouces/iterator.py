@@ -1,8 +1,10 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import generators
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import generators
-from __future__ import division
+
+from typing import List, Dict
 
 import six
 
@@ -86,12 +88,40 @@ class NumpyIterator(BaseIterator):
 
     @staticmethod
     def _item_to_value_func(data):
-        return data
+        return data[:-1], data[-1]
 
     def _next_page(self):
         items = self._data[
                 self.page_number * self.batch_size:min((self.page_number + 1) * self.batch_size, self.max_results)
                 ]
+        if len(items) == 0:
+            return None
+        page = Page(items, self._item_to_value)
+        return page
+
+    def initialize(self):
+        self.page_number = 0
+        self.num_results = 0
+        self._started = False
+
+
+class DictIterator(BaseIterator):
+    def __init__(self, x: List[Dict[str, float]], t: List[float], batch_size=1):
+        BaseIterator.__init__(self, item_to_value=self._item_to_value_func, max_results=len(x))
+        self.x = x
+        self.t = t
+        self.batch_size = batch_size
+
+    @staticmethod
+    def _item_to_value_func(data):
+        return data
+
+    def _next_page(self):
+        rng = slice(
+            self.page_number * self.batch_size,
+            min((self.page_number + 1) * self.batch_size, self.max_results)
+        )
+        items = list(zip(self.x[rng], self.t[rng]))
         if len(items) == 0:
             return None
         page = Page(items, self._item_to_value)
