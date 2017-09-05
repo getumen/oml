@@ -22,7 +22,7 @@ online machine learning
 - simple neural network(including dense, conv, pooling, batch norm and drop out)
 - factorization machine(gauss, poisson and softmax output)
 
-## regularizers
+## supported regularizers
 - l1
 - l2
 - trace norm

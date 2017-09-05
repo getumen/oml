@@ -1,10 +1,11 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import generators
 from __future__ import print_function
 from __future__ import unicode_literals
-from __future__ import absolute_import
-from __future__ import generators
-from __future__ import division
 
 import numpy as np
+
 from oml.models.components import State
 
 
@@ -21,7 +22,7 @@ class BaseModel:
 
     def loss(self, x, t, *args, **kwargs):
         reg = 0
-        x, y = np.asarray(x), np.asarray(y)
+        x, t = np.asarray(x), np.asarray(t)
         for layer in self.layers:
             x = layer.forward(x, *args, **kwargs)
             if isinstance(layer, State):
@@ -50,11 +51,20 @@ class Classifier(BaseModel):
         sample_num = 0
         for page in test_iter.pages:
             x, t = zip(*list(page))
-            t = np.asarray(t).reshape(t.size)
+            x = np.asarray(x)
+            t = np.asarray(t)
+            t = t.reshape(t.size)
             y = self.predict(x, train_flg=False)
-            y = np.argmax(y, axis=1).reshape(t.shape)
+            if y.size != t.size:
+                y = np.argmax(y, axis=1).reshape(t.size)
+                sample_num += x.shape[0]
+            else:
+                tmp = np.zeros_like(y)
+                tmp[y > 0.5] = 1
+                tmp[y <= 0.5] = 0
+                y = tmp.reshape(tmp.size)
+                sample_num += y.size
             accuracy += np.sum(y == t)
-            sample_num += x.shape[0]
         if show:
             print('=== Accuracy: {}'.format(accuracy / sample_num))
         return accuracy / sample_num

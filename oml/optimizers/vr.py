@@ -40,7 +40,7 @@ class Svrg(Optimizer):
         loss = None
 
         for page in train_iter.pages:
-            x, t = np.asarray, zip(*list(page))
+            x, t = zip(*list(page))
 
             iter_num += 1
             self.model.loss(x, t)

@@ -64,10 +64,10 @@ class State:
 
 
 class Affine(Layer, State):
-    def __init__(self, input_size, output_size, reg=Nothing(), sparse=False):
+    def __init__(self, input_size, output_size, reg=Nothing()):
         State.__init__(self, {
-            'w': Param((input_size, output_size), sparse=sparse, reg=reg),
-            'b': Param((1, output_size), sparse=sparse)
+            'w': Param((input_size, output_size), reg=reg),
+            'b': Param((1, output_size))
         })
         self.update_set.add('w')
         self.update_set.add('b')
@@ -280,12 +280,16 @@ class Softmax(LastLayer):
     def forward(self, x, t, *args, **kwargs):
         self.t = t
         self.y = self.predict(x, *args, **kwargs)
+        if self.t.size == self.y.size:
+            self.t = self.t.reshape(self.t.size)
+            self.y = self.y.reshape(self.y.size)
         return F.cross_entropy(self.y, self.t)
 
     def backward(self):
         batch_size = self.t.shape[0]
         if self.t.size == self.y.size:
             dx = (self.y - self.t) / batch_size
+            dx = dx.reshape(batch_size, -1)
         else:
             dx = self.y.copy()
             dx[np.arange(batch_size), self.t.astype(int)] -= 1
@@ -328,11 +332,11 @@ def col2im(col, input_shape, filter_h, filter_w, stride=1, pad=0):
 
 
 class Convolution(Layer, State):
-    def __init__(self, weight_shape, bias_shape, stride=1, pad=0, sparse=False, reg=Nothing()):
+    def __init__(self, weight_shape, bias_shape, stride=1, pad=0, reg=Nothing()):
         Layer.__init__(self)
         State.__init__(self, {
-            'w': Param(weight_shape, sparse=sparse, reg=reg),
-            'b': Param(bias_shape, sparse=sparse)
+            'w': Param(weight_shape, reg=reg),
+            'b': Param(bias_shape)
         })
         self.update_set.add('w')
         self.update_set.add('b')
