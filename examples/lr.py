@@ -10,7 +10,7 @@ from sklearn.datasets import load_boston
 from sklearn.preprocessing import maxabs_scale
 from oml.models.glm import LinearRegression
 from oml.models.regulizers import L1, L2Sq
-from oml.optimizers.fobos import Fobos
+from oml.optimizers.sgd import Fobos
 from oml.optimizers.adagrad import AdaGrad, AdaRDA
 from oml.optimizers.rda import Rda, AcceleratedRDA
 from oml.optimizers.vr import Svrg

@@ -13,7 +13,7 @@ from oml.datasouces.iterator import DictIterator
 from oml.models.fm import PoissonFM
 from oml.optimizers.adagrad import AdaGrad
 from oml.optimizers.adam import Adam, AdMax
-from oml.optimizers.fobos import Fobos
+from oml.optimizers.sgd import Fobos
 
 from oml.models.regulizers import L2Sq
 
@@ -67,7 +67,7 @@ def plot():
             r = r[::max(len(r) // 100, 1)]
             plt.plot(list(range(len(r))), r, label=method)
         plt.legend()
-    plt.savefig('{}.png'.format(out))
 
 
 plot()
+plt.savefig('{}.png'.format(out))

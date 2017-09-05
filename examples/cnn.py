@@ -11,7 +11,7 @@ from oml.models.nn import NN
 from oml.models.regulizers import L2Sq, L1
 from oml.optimizers.adagrad import AdaRDA, AdaGrad
 from oml.optimizers.rda import Rda
-from oml.optimizers.fobos import Fobos
+from oml.optimizers.sgd import Fobos
 from oml.optimizers.vr import Svrg
 from oml.optimizers.freerex import FreeRex
 from oml.optimizers.nesterov import AccSGD

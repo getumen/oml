@@ -7,8 +7,6 @@ from __future__ import unicode_literals
 from typing import List
 
 import numpy as np
-from scipy.sparse import csr_matrix
-from scipy.special import factorial
 
 from oml import functions as F
 from oml.models.regulizers import Nothing
@@ -47,14 +45,11 @@ class ProximalOracle:
 
 
 class Param(FirstOrderOracle, ProximalOracle):
-    def __init__(self, shape=None, reg=Nothing(), sparse=False, param=None):
+    def __init__(self, shape=None, reg=Nothing(), param=None):
         ProximalOracle.__init__(self, reg)
         if shape is not None:
             FirstOrderOracle.__init__(self, np.zeros(shape))
-            if sparse:
-                self.param = csr_matrix(np.zeros(shape))
-            else:
-                self.param = np.random.normal(size=shape) * 1e-7
+            self.param = np.random.normal(size=shape) * 1e-7
         elif param is not None:
             FirstOrderOracle.__init__(self, np.zeros_like(param))
             self.param = param
@@ -121,6 +116,7 @@ class FactorizationMachine(Layer, State):
 
             key_list = list(x[n].keys())
 
+            # dp
             for o in range(self.order):
 
                 a = np.zeros((o + 2, len(key_list) + 1, self.rank_list[o]))
@@ -260,7 +256,7 @@ class Poisson(LastLayer):
     def forward(self, x, t, *args, **kwargs):
         self.y = self.predict(x, *args, **kwargs)
         self.t = t.reshape(self.y.shape)
-        return np.sum(self.y - np.multiply(t, self.x)) + np.sum(np.log(factorial(self.y)))
+        return np.sum(self.y - np.multiply(t, self.x))
 
     def backward(self):
         batch_size = self.x.shape[0]

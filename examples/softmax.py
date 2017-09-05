@@ -16,7 +16,7 @@ from oml.models.glm import SoftmaxRegression
 from oml.models.regulizers import L1
 from oml.optimizers.adagrad import AdaRDA, AdaGrad
 from oml.optimizers.adam import AdMax, Adam
-from oml.optimizers.fobos import Fobos
+from oml.optimizers.sgd import Fobos
 from oml.optimizers.freerex import FreeRex
 from oml.optimizers.nesterov import AccSGD
 from oml.optimizers.rda import Rda, AcceleratedRDA

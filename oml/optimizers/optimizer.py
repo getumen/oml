@@ -62,7 +62,7 @@ class Optimizer:
                 self.model.clear_grad()
 
         print('=== Final Evaluation ===')
-        self.model.evaluate_model(test_iter)
+        self.model.evaluate_model(test_iter, show=True)
         test_iter.initialize()
 
     def rule(self, i, key, layer):
