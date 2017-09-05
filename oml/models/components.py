@@ -9,7 +9,7 @@ from typing import List
 import numpy as np
 
 from oml import functions as F
-from oml.models.regulizers import Nothing
+from oml.models.regularizers import Nothing
 
 
 class Layer:

@@ -5,7 +5,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from oml.models.components import Affine, Gauss, Softmax, State, Poisson
-from oml.models.regulizers import Nothing
+from oml.models.regularizers import Nothing
 from oml.models.model import Classifier, Regression
 from oml.functions import Differentiable, StrongConvexity
 

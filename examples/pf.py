@@ -15,7 +15,7 @@ from oml.optimizers.adagrad import AdaGrad
 from oml.optimizers.adam import Adam, AdMax
 from oml.optimizers.sgd import Fobos
 
-from oml.models.regulizers import L2Sq
+from oml.models.regularizers import L2Sq
 
 data = np.loadtxt('./ml-latest-small/ratings.csv', skiprows=1, delimiter=',')
 

@@ -13,7 +13,7 @@ from sklearn.preprocessing import maxabs_scale
 
 from oml.datasouces.iterator import NumpyIterator
 from oml.models.glm import SoftmaxRegression
-from oml.models.regulizers import L1
+from oml.models.regularizers import L1
 from oml.optimizers.adagrad import AdaRDA, AdaGrad
 from oml.optimizers.adam import AdMax, Adam
 from oml.optimizers.sgd import Fobos

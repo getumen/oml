@@ -8,7 +8,7 @@ import numpy as np
 
 from sklearn.preprocessing import maxabs_scale
 from oml.models.nn import NN
-from oml.models.regulizers import L2Sq, L1
+from oml.models.regularizers import L2Sq, L1
 from oml.optimizers.adagrad import AdaRDA, AdaGrad
 from oml.optimizers.rda import Rda
 from oml.optimizers.sgd import Fobos

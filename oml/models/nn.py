@@ -5,7 +5,7 @@ from __future__ import generators
 from __future__ import division
 
 from oml.models.components import Affine, Convolution, Pooling, Softmax, State, Relu, BatchNormalization, Dropout, FactorizationMachine
-from oml.models.regulizers import L2Sq, Nothing
+from oml.models.regularizers import L2Sq, Nothing
 from oml.models.model import Classifier
 from oml.functions import Differentiable
 

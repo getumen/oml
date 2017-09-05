@@ -4,5 +4,5 @@ from . import (
     glm,
     model,
     nn,
-    regulizers,
+    regularizers,
 )

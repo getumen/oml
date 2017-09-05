@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 from oml.datasouces.iterator import DictIterator
 from oml.models.fm import FM
-from oml.models.regulizers import L2Sq
+from oml.models.regularizers import L2Sq
 from oml.optimizers.sgd import Fobos, SGDWithNoise
 
 import pickle

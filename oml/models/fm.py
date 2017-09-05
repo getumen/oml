@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 from oml.functions import Differentiable
 from oml.models.components import FactorizationMachine, Gauss, Poisson
 from oml.models.model import Regression
-from oml.models.regulizers import Nothing
+from oml.models.regularizers import Nothing
 from oml.models.components import State
 
 import numpy as np
