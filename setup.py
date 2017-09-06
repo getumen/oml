@@ -7,12 +7,11 @@ REQUIREMENTS = [
 
 setup(
     name='oml',
-    version='0.2.0',
+    version='0.2.2',
     description='Online Machine Learning',
     author='@getumen',
     author_email='n.yoshihiro.jp@gmail.com',
     url='https://github.com/getumen/oml',
-    packages=find_packages('oml'),
+    packages=find_packages(exclude=['examples', 'tests']),
     install_requires=REQUIREMENTS,
-    package_dir={'': 'oml'}
 )

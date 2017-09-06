@@ -5,10 +5,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from oml.functions import Differentiable
-from oml.models.components import FactorizationMachine, Gauss, Poisson
-from oml.models.model import Regression
-from oml.models.regularizers import Nothing
-from oml.models.components import State
+from .components import FactorizationMachine, Gauss, Poisson
+from .model import Regression
+from .regularizers import Nothing
+from .components import State
 
 import numpy as np
 

@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 import numpy as np
 
-from oml.optimizers import optimizer
+from . import optimizer
 from oml.models.components import ProximalOracle
 
 from oml.functions import StrongConvexity, Differentiable

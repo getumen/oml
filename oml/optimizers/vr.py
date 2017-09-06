@@ -5,11 +5,9 @@ from __future__ import generators
 from __future__ import division
 
 from oml.functions import Differentiable, StrongConvexity
-from oml.optimizers.optimizer import Optimizer
+from .optimizer import Optimizer
 from oml.models.components import State
 from oml.models.components import ProximalOracle
-
-import numpy as np
 
 
 class Svrg(Optimizer):

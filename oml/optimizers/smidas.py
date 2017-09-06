@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import numpy as np
 
 from oml.models.components import ProximalOracle
-from oml.optimizers import optimizer
+from . import optimizer
 
 
 class Smidas(optimizer.Optimizer):

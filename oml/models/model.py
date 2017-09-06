@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 import numpy as np
 
-from oml.models.components import State
+from .components import State
 
 
 class BaseModel:

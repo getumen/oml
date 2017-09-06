@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from __future__ import generators
 from __future__ import division
 
-from oml.optimizers.optimizer import Optimizer
+from .optimizer import Optimizer
 from oml.models.components import ProximalOracle
 from oml.functions import StrongConvexity
 

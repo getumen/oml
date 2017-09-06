@@ -8,7 +8,7 @@ import numpy as np
 
 from oml.functions import StrongConvexity, Differentiable
 from oml.models.components import State, ProximalOracle
-from oml.optimizers.optimizer import Optimizer
+from .optimizer import Optimizer
 
 
 class AccSGD(Optimizer):

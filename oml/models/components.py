@@ -8,8 +8,8 @@ from typing import List
 
 import numpy as np
 
+from .regularizers import Nothing
 from oml import functions as F
-from oml.models.regularizers import Nothing
 
 
 class Layer:

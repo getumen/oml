@@ -4,9 +4,9 @@ from __future__ import absolute_import
 from __future__ import generators
 from __future__ import division
 
-from oml.models.components import Affine, Convolution, Pooling, Softmax, State, Relu, BatchNormalization, Dropout, FactorizationMachine
-from oml.models.regularizers import L2Sq, Nothing
-from oml.models.model import Classifier
+from .components import Affine, Convolution, Pooling, Softmax, State, Relu, BatchNormalization, Dropout, FactorizationMachine
+from .regularizers import L2Sq, Nothing
+from .model import Classifier
 from oml.functions import Differentiable
 
 import numpy as np

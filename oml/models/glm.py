@@ -4,9 +4,9 @@ from __future__ import generators
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from oml.models.components import Affine, Gauss, Softmax, State, Poisson
-from oml.models.regularizers import Nothing
-from oml.models.model import Classifier, Regression
+from .components import Affine, Gauss, Softmax, Poisson
+from .regularizers import Nothing
+from .model import Classifier, Regression
 from oml.functions import Differentiable, StrongConvexity
 
 import numpy as np

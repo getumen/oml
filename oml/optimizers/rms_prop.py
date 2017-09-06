@@ -8,7 +8,7 @@ import numpy as np
 
 from oml.functions import StrongConvexity
 from oml.models.components import ProximalOracle
-from oml.optimizers import optimizer
+from . import optimizer
 
 
 class RMSProp(optimizer.Optimizer):
