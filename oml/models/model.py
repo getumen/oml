@@ -65,9 +65,10 @@ class Classifier(BaseModel):
                 y = tmp.reshape(tmp.size)
                 sample_num += y.size
             accuracy += np.sum(y == t)
+        accuracy = accuracy / sample_num if sample_num > 0 else 0
         if show:
-            print('=== Accuracy: {}'.format(accuracy / sample_num))
-        return accuracy / sample_num
+            print('=== Accuracy: {}'.format(accuracy))
+        return accuracy
 
 
 class Regression(BaseModel):
@@ -81,6 +82,7 @@ class Regression(BaseModel):
             y = self.predict(x, train_flg=False)
             error += np.linalg.norm(t - y) ** 2
             sample_num += x.shape[0]
+        error = error / sample_num if sample_num > 0 else float('inf')
         if show:
-            print('=== RMSE: {}'.format(np.sqrt(error / sample_num)))
-        return np.sqrt(error / sample_num)
+            print('=== RMSE: {}'.format(np.sqrt(error)))
+        return np.sqrt(error)

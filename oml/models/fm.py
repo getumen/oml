@@ -29,9 +29,10 @@ class BaseFM(Regression):
             y = self.predict(x, train_flg=False).reshape(len(t))
             error += np.linalg.norm(t - y) ** 2
             sample_num += len(x)
+        error = error / sample_num if sample_num > 0 else float('inf')
         if show:
-            print('=== RMSE: {}'.format(np.sqrt(error / sample_num)))
-        return np.sqrt(error / sample_num)
+            print('=== RMSE: {}'.format(np.sqrt(error)))
+        return np.sqrt(error)
 
     def predict(self, x: List[Dict[str, float]], *args, **kwargs):
 
