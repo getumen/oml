@@ -7,7 +7,7 @@ REQUIREMENTS = [
 
 setup(
     name='oml',
-    version='0.2.2',
+    version='0.2.3',
     description='Online Machine Learning',
     author='@getumen',
     author_email='n.yoshihiro.jp@gmail.com',
