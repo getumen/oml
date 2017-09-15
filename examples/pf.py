@@ -11,8 +11,7 @@ from matplotlib import pyplot as plt
 
 from oml.datasouces.iterator import DictIterator
 from oml.models.fm import PoissonFM
-from oml.optimizers.adagrad import AdaGrad
-from oml.optimizers.adam import Adam, AdMax
+import random
 from oml.optimizers.sgd import Fobos
 
 from oml.models.regularizers import L2Sq
@@ -27,7 +26,10 @@ x = []
 t = []
 
 for line in data:
-    x.append({'u_{}'.format(line[0]): 1, 'i_{}'.format(line[1]): 1})
+    dic = {'u_{}'.format(line[0]): 1, 'i_{}'.format(line[1]): 1}
+    for _ in range(random.randint(0, 100)):
+        dic['rnd={}'.format(random.randint(0, 10000))] = random.random()
+    x.append(dic)
     t.append(line[2])
 
 train_iter = DictIterator(x=x[:data.shape[0] // 5 * 4], t=t[:data.shape[0] // 5 * 4], batch_size=100)
@@ -45,7 +47,7 @@ def opt_test(optimizer, label):
         pass
     if not os.path.isfile('./{}/{}_{}.csv'.format(out, label, 'loss')):
         print(label)
-        optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=5)
+        optimizer.optimize(train_iter, test_iter, show_evaluation=True, epoch=5, show_loss=True)
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'loss'), optimizer.loss, delimiter=',')
         np.savetxt('./{}/{}_{}.csv'.format(out, label, 'rmse'), optimizer.evaluation, delimiter=',')
 

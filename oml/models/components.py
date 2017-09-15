@@ -8,8 +8,8 @@ from typing import List
 
 import numpy as np
 
-from .regularizers import Nothing
 from oml import functions as F
+from .regularizers import Nothing
 
 
 class Layer:
@@ -136,11 +136,11 @@ class FactorizationMachine(Layer, State):
 
                 res[n] += np.sum(a[o + 1, len(key_list), :])
 
-                self.dp_table[o] = a
+                self.dp_table[(n, o)] = a
 
         return res
 
-    def backward(self, dout):
+    def backward(self, dout: np.ndarray):
 
         self.param['b'].grad += np.sum(dout, axis=0) * 1
 
@@ -150,7 +150,7 @@ class FactorizationMachine(Layer, State):
 
             for o in range(self.order):
 
-                a = self.dp_table[o]
+                a = self.dp_table[(n, o)]
 
                 a_ = np.zeros((o + 2, len(key_list) + 1, self.rank_list[o]))
                 a_[o + 1, len(key_list), self.rank_list[o] - 1] = 1
@@ -158,14 +158,14 @@ class FactorizationMachine(Layer, State):
                 for t in range(o, 0, -1):
                     for j in range(len(key_list) - 1, t - 1, -1):
                         key = key_list[j - 1]
-                        a_[t, j, :] = \
-                            a_[t, j + 1, :] + a_[t + 1, j + 1, :] * self.param['{}-{}'.format(o, key)].param * \
-                                              self.x[n][key]
+                        a_[t, j, :] = a_[t, j + 1, :] + a_[t + 1, j + 1, :] \
+                                                        * self.param['{}-{}'.format(o, key)].param * self.x[n][key]
 
                 for j in range(len(key_list)):
                     for t in range(1, o + 2):
                         self.param['{}-{}'.format(o, key_list[j])].grad += a_[t, j + 1] * a[t - 1, j] * dout[n]
 
+        self.dp_table.clear()
         return None
 
 
